@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cut">
+<title>מדריך ריו פאלאס זנזיבר</title>
+<meta name="theme-color" content="#0b4f55">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<style>
+  :root{
+    --teal-900:#06363b; --teal-800:#0b4f55; --teal-700:#0f646b; --teal-600:#13808a; --teal-100:#dff1f1;
+    --sand-50:#fbf7ef; --sand-100:#f5ecdb; --sand-200:#ecdcbf; --sand-400:#c9a979;
+    --gold:#d99a1e; --gold-dark:#b07b0f; --coral:#e8603c;
+    --ink:#17282a; --muted:#5d6f71; --card:#ffffff; --line:#e7e0d2;
+    --shadow:0 1px 2px rgba(6,54,59,.06),0 6px 18px rgba(6,54,59,.08);
+    --shadow-lg:0 10px 40px rgba(6,54,59,.22);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:'Heebo',system-ui,sans-serif;background:var(--sand-50);color:var(--ink);-webkit-font-smoothing:antialiased;overflow:hidden}
+
+  /* ---------- App shell ---------- */
+  #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  header.top{background:linear-gradient(135deg,var(--teal-900),var(--teal-700));color:#fff;padding:12px 16px 10px;box-shadow:0 2px 12px rgba(0,0,0,.15);z-index:500;position:relative}
+  .brand-sub{color:#bfe3e3;font-size:12.5px}
+  .search-wrap{position:relative;flex:1;min-width:0}
+  .search-wrap input{width:100%;border:0;border-radius:12px;padding:10px 38px 10px 12px;font:inherit;font-size:14.5px;background:rgba(255,255,255,.96);color:var(--ink);outline:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+  .search-wrap input:focus{box-shadow:0 0 0 3px rgba(217,154,30,.55)}
+  .search-wrap svg{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--teal-700)}
+  .btn-top{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border-radius:12px;padding:9px 12px;font-size:13.5px;font-weight:600;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;transition:.2s}
+  .btn-top:hover{background:rgba(255,255,255,.2)}
+  .btn-top.on{background:var(--gold);border-color:var(--gold);color:#1d1404}
+  .btn-gold{background:var(--gold);border-color:var(--gold);color:#1d1404}
+  .btn-gold:hover{background:#e8aa2c}
+
+  .pills{display:flex;gap:7px;overflow-x:auto;padding:10px 2px 2px;scrollbar-width:none}
+  .pills::-webkit-scrollbar{display:none}
+  .pill{flex:0 0 auto;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:500;border:1px solid rgba(255,255,255,.28);color:#e8f6f6;background:transparent;cursor:pointer;transition:.18s;display:inline-flex;align-items:center;gap:6px}
+  .pill:hover{background:rgba(255,255,255,.12)}
+  .pill.active{background:#fff;color:var(--teal-800);border-color:#fff;font-weight:700}
+  .pill .cnt{font-size:11px;opacity:.75;background:rgba(0,0,0,.08);padding:0 6px;border-radius:999px}
+
+  main.split{flex:1;display:flex;min-height:0;position:relative}
+  #listPane{width:45%;display:flex;flex-direction:column;min-height:0;background:var(--sand-50);border-left:1px solid var(--line)}
+  #mapPane{width:55%;position:relative;min-height:0}
+  #map{position:absolute;inset:0;background:#cfe7ea}
+  #list{flex:1;overflow-y:auto;padding:12px 14px 110px;scroll-behavior:smooth}
+
+  /* ---------- Hotel pinned card ---------- */
+  .hotel-card{position:sticky;top:0;z-index:5;margin:0;padding:12px 14px;background:linear-gradient(135deg,#fff8e7,#fdf0d2);border-bottom:1px solid #f0d9a4;display:flex;gap:12px;align-items:center;cursor:pointer}
+  .hotel-ico{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f3c14d,var(--gold-dark));display:grid;place-items:center;font-size:21px;box-shadow:0 4px 12px rgba(176,123,15,.35);flex:0 0 auto}
+
+  /* ---------- POI cards ---------- */
+  .result-meta{font-size:12.5px;color:var(--muted);margin:2px 2px 10px;display:flex;justify-content:space-between;align-items:center}
+  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px 14px 12px;margin-bottom:12px;border:2px solid transparent;transition:border-color .25s, box-shadow .25s, transform .25s;cursor:pointer;position:relative;overflow:hidden}
+  .card:hover{box-shadow:0 2px 4px rgba(6,54,59,.06),0 10px 26px rgba(6,54,59,.12)}
+  .card.selected{border-color:var(--gold);box-shadow:0 0 0 4px rgba(217,154,30,.18),var(--shadow)}
+  .card.flash{animation:flash 1.1s ease}
+  @keyframes flash{0%{transform:scale(1)}25%{transform:scale(1.015)}100%{transform:scale(1)}}
+  .card .stripe{position:absolute;top:0;right:0;width:5px;height:100%}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .hl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:10px;background:linear-gradient(135deg,#2a1a5e,#5b3fb5);color:#fff;margin-top:8px}
+  .hl.trip{background:linear-gradient(135deg,#8a4b08,#d99a1e)}
+  .hl.run{background:linear-gradient(135deg,#a8361a,var(--coral))}
+  .card h3{font-size:16.5px;font-weight:700;line-height:1.3;margin:0}
+  .card .en{font-size:12px;color:var(--muted);direction:ltr;text-align:right}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:11px 0 9px}
+  .stat{background:var(--sand-50);border:1px solid var(--line);border-radius:11px;padding:6px 8px;text-align:center}
+  .stat b{display:block;font-size:14px;font-weight:700;color:var(--teal-800)}
+  .stat span{font-size:11px;color:var(--muted)}
+  .desc{font-size:13.6px;line-height:1.6;color:#2c3d3f;margin:0}
+  .tips{list-style:none;margin:9px 0 0;padding:0;display:grid;gap:5px}
+  .tips li{font-size:12.8px;line-height:1.5;color:#33474a;display:flex;gap:7px}
+  .tips li .ti{flex:0 0 18px;text-align:center}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn-nav{display:inline-flex;align-items:center;gap:6px;background:var(--teal-700);color:#fff;font-size:13px;font-weight:600;padding:8px 13px;border-radius:10px;text-decoration:none;transition:.18s}
+  .btn-nav:hover{background:var(--teal-800)}
+  .btn-ghost{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--teal-700);border:1px solid #bcd9da;font:inherit;font-size:13px;font-weight:600;padding:7px 12px;border-radius:10px;cursor:pointer}
+  .btn-ghost:hover{background:var(--teal-100)}
+  .empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:14px}
+
+  /* ---------- Markers ---------- */
+  .poi-pin{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.3);transition:transform .2s}
+  .poi-pin span{transform:rotate(45deg);font-size:15px;line-height:1}
+  .poi-pin.sel{transform:rotate(-45deg) scale(1.25);box-shadow:0 0 0 5px rgba(217,154,30,.45),0 4px 14px rgba(0,0,0,.35)}
+  .home-pin{position:relative;width:52px;height:52px}
+  .home-pin .core{position:absolute;inset:6px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:linear-gradient(135deg,#f6cd5c,var(--gold-dark));border:3px solid #fff;box-shadow:0 4px 16px rgba(176,123,15,.55);display:grid;place-items:center}
+  .home-pin .core span{transform:rotate(45deg);font-size:19px}
+  .home-pin .pulse{position:absolute;inset:0;border-radius:50%;background:rgba(217,154,30,.35);animation:pulse 2.2s infinite}
+  @keyframes pulse{0%{transform:scale(.55);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+  .route-end{background:#fff;color:var(--coral);border:2px solid var(--coral);border-radius:999px;font-size:11px;font-weight:700;padding:2px 8px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2);font-family:'Heebo',sans-serif;text-align:center}
+
+  /* ---------- Leaflet popup ---------- */
+  .leaflet-popup-content-wrapper{border-radius:14px;box-shadow:var(--shadow-lg)}
+  .leaflet-popup-content{margin:12px 14px;font-family:'Heebo',sans-serif;direction:rtl;text-align:right;min-width:220px}
+  .pp-title{font-weight:700;font-size:15px;margin:4px 0 2px;color:var(--ink)}
+  .pp-row{display:flex;gap:10px;font-size:12.5px;color:var(--muted);margin:6px 0 10px;flex-wrap:wrap}
+  .pp-row b{color:var(--teal-800)}
+  .pp-desc{font-size:12.8px;line-height:1.5;color:#33474a;margin:0 0 10px}
+  .pp-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .pp-actions a,.pp-actions button{font-family:inherit;font-size:12.5px;font-weight:600;padding:6px 10px;border-radius:9px;text-decoration:none;cursor:pointer}
+  .pp-actions a{background:var(--teal-700);color:#fff !important}
+  .pp-actions button{background:#fff;border:1px solid #bcd9da;color:var(--teal-700)}
+  .leaflet-container{font-family:'Heebo',sans-serif}
+  .leaflet-tooltip.route-tip{background:var(--coral);color:#fff;border:0;font-weight:600;font-family:'Heebo',sans-serif;border-radius:8px}
+  .leaflet-tooltip.route-tip:before{display:none}
+
+  /* ---------- Map overlay controls ---------- */
+  .map-legend{position:absolute;bottom:14px;right:14px;z-index:450;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-radius:12px;padding:8px 11px;font-size:12px;box-shadow:var(--shadow);display:grid;gap:4px}
+  .map-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:6px;vertical-align:middle}
+  .map-legend .dash{width:20px;height:0;border-top:3px dashed var(--coral);border-radius:0}
+  .map-recenter{position:absolute;top:12px;right:12px;z-index:450;background:#fff;border:0;border-radius:12px;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--teal-800);box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:6px}
+  .map-recenter:hover{background:var(--sand-100)}
+
+  /* ---------- Mobile toggle ---------- */
+  #viewToggle{display:none;position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:900;background:var(--teal-900);color:#fff;border-radius:999px;padding:5px;box-shadow:var(--shadow-lg);gap:4px}
+  #viewToggle button{border:0;background:transparent;color:#cfe9e9;font:inherit;font-weight:600;font-size:14px;padding:9px 18px;border-radius:999px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.2s}
+  #viewToggle button.on{background:var(--gold);color:#1d1404}
+
+  /* ---------- Itinerary modal ---------- */
+  #itin{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(6,30,33,.55);backdrop-filter:blur(3px)}
+  #itin.open{display:flex}
+  .itin-box{background:var(--sand-50);width:100%;max-width:720px;max-height:92dvh;border-radius:22px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;overflow:hidden;animation:pop .25s ease}
+  @keyframes pop{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+  .itin-head{background:linear-gradient(135deg,var(--teal-900),var(--teal-700));color:#fff;padding:16px 18px 0}
+  .day-tabs{display:flex;gap:6px;overflow-x:auto;margin-top:12px;scrollbar-width:none}
+  .day-tabs::-webkit-scrollbar{display:none}
+  .day-tab{flex:1 0 auto;border:0;background:rgba(255,255,255,.1);color:#d7eeee;font:inherit;padding:8px 12px 10px;border-radius:12px 12px 0 0;cursor:pointer;text-align:center;line-height:1.25;min-width:84px}
+  .day-tab b{display:block;font-size:15px}
+  .day-tab small{font-size:11.5px;opacity:.85}
+  .day-tab.on{background:var(--sand-50);color:var(--teal-800)}
+  .day-tab.party:not(.on){background:rgba(124,58,237,.45);color:#fff}
+  .itin-body{overflow-y:auto;padding:16px 18px 20px}
+  .tl{position:relative;padding-right:22px}
+  .tl:before{content:"";position:absolute;right:7px;top:6px;bottom:6px;width:2px;background:var(--sand-200)}
+  .tl-item{position:relative;margin-bottom:12px;background:#fff;border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+  .tl-item:before{content:"";position:absolute;right:-20px;top:16px;width:12px;height:12px;border-radius:50%;background:var(--teal-600);border:2px solid var(--sand-50);box-shadow:0 0 0 2px var(--teal-600)}
+  .tl-item.star{background:linear-gradient(135deg,#2a1a5e,#5b3fb5);color:#fff}
+  .tl-item.star:before{background:#f6cd5c;box-shadow:0 0 0 2px #f6cd5c}
+  .tl-item.star .tl-time{color:#f6cd5c}
+  .tl-item.star p{color:#e6defc}
+  .tl-time{font-size:12.5px;font-weight:700;color:var(--teal-700)}
+  .tl-item h4{margin:2px 0 3px;font-size:15px;font-weight:700}
+  .tl-item p{margin:0;font-size:13px;line-height:1.55;color:#3c5052}
+  .tl-link{margin-top:7px;display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:12.5px;font-weight:600;border:0;background:var(--teal-100);color:var(--teal-800);padding:5px 10px;border-radius:8px;cursor:pointer}
+  .tl-item.star .tl-link{background:rgba(255,255,255,.18);color:#fff}
+  .day-intro{background:var(--sand-100);border-radius:12px;padding:10px 12px;font-size:13px;color:#4a3b20;margin-bottom:14px;line-height:1.55}
+  .close-x{border:0;background:rgba(255,255,255,.15);color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;display:grid;place-items:center}
+  .close-x:hover{background:rgba(255,255,255,.28)}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 860px){
+    #listPane,#mapPane{width:100%;position:absolute;inset:0;border:0}
+    #viewToggle{display:flex}
+    body.view-list #mapPane{visibility:hidden;pointer-events:none}
+    body.view-map #listPane{display:none}
+    .map-legend{bottom:84px;right:10px}
+    .brand-sub{display:none}
+    header.top{padding:10px 12px 8px}
+    #list{padding:12px 12px 110px}
+    .btn-top .lbl{display:none}
+  }
+  @media (max-width: 380px){
+    .stats{gap:4px}
+    .stat b{font-size:13px}
+  }
+</style>
+</head>
+<body class="view-list">
+<div id="app">
+  <!-- ===== Header ===== -->
+  <header class="top">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="hotel-ico" style="width:38px;height:38px;font-size:18px">🌴</div>
+        <div class="min-w-0">
+          <h1 class="text-[17px] sm:text-[19px] font-extrabold leading-tight truncate">המדריך שלי לזנזיבר</h1>
+          <div class="brand-sub">סביב Riu Palace Zanzibar · נונגווי וקנדווה · 19–22 בנובמבר</div>
+        </div>
+      </div>
+      <button id="openItin" class="btn-top btn-gold" title="מסלול 4 ימים">
+        <span>🗓️</span><span>מסלול 4 ימים</span>
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2 mt-3">
+      <label class="search-wrap" aria-label="חיפוש">
+        <input id="search" type="search" placeholder="חיפוש מקום, אוכל, ריצה, צלילה…" autocomplete="off">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </label>
+      <button id="sortBtn" class="btn-top" aria-pressed="false" title="מיון לפי מרחק מהמלון">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h13M3 12h9M3 18h5M18 4v16m0 0-3-3m3 3 3-3"/></svg>
+        <span class="lbl">לפי מרחק</span>
+      </button>
+    </div>
+
+    <nav class="pills" id="pills" aria-label="קטגוריות"></nav>
+  </header>
+
+  <!-- ===== Split view ===== -->
+  <main class="split">
+    <section id="listPane" aria-label="רשימת מקומות">
+      <div class="hotel-card" id="hotelCard" title="הצג את המלון במפה">
+        <div class="hotel-ico">🏨</div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <strong class="text-[15.5px]">Riu Palace Zanzibar</strong>
+            <span class="badge" style="background:#f6cd5c;color:#4a3304">⭐ נקודת הבית</span>
+          </div>
+          <div class="text-[12.5px] text-[#6b5320] mt-0.5">Nungwi Road · חוף קנדווה–נונגווי · כל המרחקים מחושבים מכאן</div>
+        </div>
+        <a class="btn-nav" style="background:var(--gold-dark);padding:7px 10px" target="_blank" rel="noopener"
+           href="https://www.google.com/maps/search/?api=1&query=-5.7366,39.2912" onclick="event.stopPropagation()">📍</a>
+      </div>
+      <div id="list"></div>
+    </section>
+
+    <section id="mapPane" aria-label="מפה">
+      <div id="map"></div>
+      <button class="map-recenter" id="recenter">🏨 חזרה למלון</button>
+      <div class="map-legend" id="legend"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== Mobile view toggle ===== -->
+<div id="viewToggle" role="tablist">
+  <button data-view="map" role="tab">🗺️ מפה</button>
+  <button data-view="list" class="on" role="tab">📋 רשימה</button>
+</div>
+
+<!-- ===== Itinerary modal ===== -->
+<div id="itin" role="dialog" aria-modal="true" aria-labelledby="itinTitle">
+  <div class="itin-box">
+    <div class="itin-head">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="itinTitle" class="text-[19px] font-extrabold">מסלול מוצע · 4 ימים בצפון זנזיבר</h2>
+          <p class="text-[12.5px] text-[#bfe3e3] mt-0.5">חמישי 19.11 – ראשון 22.11 · שיא: מסיבת הירח המלא בקנדווה רוקס, שבת 21.11</p>
+        </div>
+        <button class="close-x" id="closeItin" aria-label="סגירה">×</button>
+      </div>
+      <div class="day-tabs" id="dayTabs"></div>
+    </div>
+    <div class="itin-body" id="dayBody"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+const HOTEL = { lat: -5.7366, lng: 39.2912, name: 'Riu Palace Zanzibar' };
+
+const CATS = {
+  nightlife: { label: 'חיי לילה ושקיעות', color: '#7c3aed', bg: '#efe7fe', icon: '🌅' },
+  food:      { label: 'אוכל וגריל',        color: '#e8603c', bg: '#fde9e2', icon: '🍤' },
+  sport:     { label: 'ריצה וספורט ימי',   color: '#0891b2', bg: '#dff4f9', icon: '🏃' },
+  nature:    { label: 'אטרקציות וטבע',     color: '#15803d', bg: '#e1f5e7', icon: '🐢' },
+  logistics: { label: 'לוגיסטיקה',          color: '#475569', bg: '#e9edf2', icon: '🏧' }
+};
+const CAT_ORDER = ['nightlife','food','sport','nature','logistics'];
+
+/* Coastal running route: Kendwa south → Kendwa Rocks → Riu Palace → Nungwi beach → Nungwi north tip */
+const RUN_ROUTE = [
+  [-5.7535, 39.2878],
+  [-5.7505, 39.2880],
+  [-5.7478, 39.2885],
+  [-5.7445, 39.2892],
+  [-5.7410, 39.2900],
+  [-5.7366, 39.2908],
+  [-5.7330, 39.2915],
+  [-5.7295, 39.2921],
+  [-5.7265, 39.2926],
+  [-5.7245, 39.2930],
+  [-5.7232, 39.2945],
+  [-5.7222, 39.2962],
+  [-5.7212, 39.2985],
+  [-5.7205, 39.3008]
+];
+
+const POIS = [
+  /* ---------- 1. Nightlife & sunsets ---------- */
+  {
+    id: 'kendwa-rocks', cat: 'nightlife', lat: -5.7478, lng: 39.2885,
+    he: 'קנדווה רוקס – מסיבת הירח המלא', en: 'Kendwa Rocks Beach Hotel',
+    highlight: { text: '🌕 מסיבת הירח המלא · שבת 21.11', cls: '' },
+    walk: 15, taxi: 4, walkVia: 'חוף',
+    desc: 'המקום הרשמי של מסיבת הירח המלא (Full Moon Party) – מסיבת חוף ענקית עם DJs, מופעי אש, אקרובטים ובר על החול עד הבוקר. ביום רגיל: בר חוף נינוח עם שקיעות מושלמות ומים צלולים לשחייה גם בשפל.',
+    tips: [
+      ['⏰','המסיבה מתחילה להתחמם סביב 22:00 ונמשכת עד הזריחה; שקיעה לפני כן בסביבות 18:30.'],
+      ['💵','כניסה בערב המסיבה: בדרך כלל כ-$20–30 (מזומן). קוקטייל ~$6–10.'],
+      ['🎒','מזומן קטן, טלפון בכיס קדמי/נרתיק עמיד למים, כפכפים לחול, תיקים מינימליים.'],
+      ['🚶','הליכה בחוף ~15 דק׳ – רק בשפל/גאות נמוכה ועם פנס. בחזרה בלילה מאוחר עדיף מונית (~4 דק׳).']
+    ]
+  },
+  {
+    id: 'sunset-bar', cat: 'nightlife', lat: -5.7245, lng: 39.2930,
+    he: 'סאנסט בר נונגווי', en: 'Sunset Bar Nungwi',
+    walkVia: 'חוף',
+    desc: 'בר החוף הקלאסי של נונגווי לשקיעה – כורסאות על החול, מוזיקה נעימה ואווירה ערבית תוססת שמתעוררת אחרי החשכה.',
+    tips: [
+      ['⏰','להגיע ב-17:45 כדי לתפוס שולחן בשורה הראשונה לשקיעה.'],
+      ['💵','קוקטיילים ~$6–10, בירה מקומית (Kilimanjaro/Safari) ~$3–4.'],
+      ['📸','חוף נונגווי פונה מערבה – מהשקיעות היפות באי.']
+    ]
+  },
+  {
+    id: 'gerrys', cat: 'nightlife', lat: -5.7232, lng: 39.2948,
+    he: 'הבר של ג׳רי', en: "Gerry's Bar",
+    walkVia: 'חוף',
+    desc: 'בר חוף צבעוני עם מוזיקה חיה ו-DJs, קהל צעיר ומגוון ואווירה קלילה. מצוין להמשך ערב אחרי ארוחה בנונגווי.',
+    tips: [
+      ['⏰','מתעורר אחרי 21:00; בסופי שבוע לעיתים ערבי DJ עד מאוחר.'],
+      ['💵','מחירים נוחים – בירה ~$3, קוקטייל ~$6.'],
+      ['🎒','מזומן בשילינג/דולר, ספריי נגד יתושים.']
+    ]
+  },
+  {
+    id: 'cholos', cat: 'nightlife', lat: -5.7225, lng: 39.2960,
+    he: 'צ׳ולוס בר', en: "Cholo's Bar",
+    walkVia: 'חוף',
+    desc: 'בר איקוני ופרוע של נונגווי – מבנה עץ וסירות דאו ממוחזרות על החוף, מדורות, רגאיי ומקומיים לצד מטיילים. אווירה אותנטית עד השעות הקטנות.',
+    tips: [
+      ['⏰','שיא הערב 22:00–02:00.'],
+      ['💵','זול יחסית; מזומן בלבד ברוב המקרים.'],
+      ['⚠️','לשמור על חפצים אישיים ולחזור במונית מסודרת (לא בהליכה לבד בלילה).']
+    ]
+  },
+
+  /* ---------- 2. Food ---------- */
+  {
+    id: 'fishermans', cat: 'food', lat: -5.7252, lng: 39.2932,
+    he: 'פישרמן׳ס – גריל ופירות ים', en: "Fisherman's Seafood & Grill",
+    walkVia: 'חוף',
+    desc: 'דג היום טרי מהדייגים, דגים על הגריל, מגשי פירות ים, לובסטר וגם סטייקים – ישר על החוף. בחירה מצוינת לארוחה עתירת חלבון אחרי יום של ספורט.',
+    tips: [
+      ['🐟','לבקש את "Catch of the day" על הגריל עם לימון ושום – הכי טרי והכי משתלם.'],
+      ['💵','עיקריות ~$12–25, לובסטר/מגש פירות ים ~$30–45.'],
+      ['⏰','להגיע לפני השקיעה (~18:00) לשולחן על החול.']
+    ]
+  },
+  {
+    id: 'langi-langi', cat: 'food', lat: -5.7240, lng: 39.2938,
+    he: 'מסעדת לאנגי לאנגי', en: 'Langi Langi Beach Bungalows Restaurant',
+    walkVia: 'חוף',
+    desc: 'מסעדה מדורגת גבוה על קו המים, עם פירות ים טריים ומנות סוואהיליות מסורתיות (קארי קוקוס, פילאו, אורז זנזיבר תבליני). נוף מרהיב לים.',
+    tips: [
+      ['🍛','לנסות קארי דגים בחלב קוקוס או אורז פילאו מקומי.'],
+      ['💵','עיקריות ~$10–22.'],
+      ['📅','בערבים עמוסים מומלץ לשריין שולחן מראש.']
+    ]
+  },
+  {
+    id: 'mama-mia', cat: 'food', lat: -5.7235, lng: 39.2945,
+    he: 'מאמא מיה', en: 'Mama Mia',
+    walkVia: 'חוף',
+    desc: 'איטלקית על החוף – פיצות ומנות מתנור עצים, פסטות טריות וג׳לטו ביתי. מושלם לערב קליל או לקינוח אחרי שקיעה.',
+    tips: [
+      ['🍕','פיצה מתנור עצים + ג׳לטו ביתי = הקומבו המנצח.'],
+      ['💵','פיצה/פסטה ~$9–16.'],
+      ['⏰','פתוח לצהריים ולערב.']
+    ]
+  },
+  {
+    id: 'badolina', cat: 'food', lat: -5.7265, lng: 39.2965,
+    he: 'בדולינה – הגן הסודי', en: 'Badolina Secret Garden',
+    walkVia: 'כביש',
+    desc: 'מסעדת בוטיק נעימה בגן ירוק בתוך נונגווי, עם מנות בהשראה ים-תיכונית ומזרח-תיכונית ומרכיבים טריים – חומוס, סלטים, צלחות גריל וקערות בריאות.',
+    tips: [
+      ['🥗','אופציה מצוינת לארוחה מאוזנת ועשירה בחלבון – צלחת גריל עם סלטים.'],
+      ['💵','מנות ~$8–18.'],
+      ['🌿','רחוק מעט מהחוף – שקט ומוצל, טוב גם לצהריים חמים.']
+    ]
+  },
+
+  /* ---------- 3. Running & water sports ---------- */
+  {
+    id: 'run-route', cat: 'sport', lat: -5.7330, lng: 39.2915, isRoute: true,
+    he: 'מסלול ריצת חוף: ריו פאלאס ↔ קנדווה ↔ נונגווי', en: 'Beach Run: Riu Palace ↔ Kendwa ↔ Nungwi',
+    highlight: { text: '🏃 מסלול שטוח על חול קשה · 3.5–5 ק״מ', cls: 'run' },
+    walkVia: 'חוף',
+    desc: 'מסלול חוף שטוח לגמרי (הפרש גובה ~0 מ׳) מהמלון: דרומה לקנדווה רוקס וקצה חוף קנדווה (~2 ק״מ), או צפונה לאורך חוף נונגווי עד הקצה הצפוני ליד המגדלור (~2.5 ק״מ). הלוך-חזור לכיוון אחד ≈ 4–5 ק״מ; כל הקטע מקצה לקצה מסומן במפה בקו מקווקו.',
+    tips: [
+      ['🌊','לרוץ בגאות בינונית-נמוכה: החול הרטוב קשה ושטוח. בגאות מלאה החוף צר ויש קטעים סלעיים – לבדוק טבלת גאות (Tide table Nungwi).'],
+      ['⏰','זמן מומלץ: 06:30–08:00, לפני החום והשמש החזקה (זריחה ~05:50).'],
+      ['🧴','כובע, קרם הגנה, 500 מ״ל מים. ריצה יחפה אפשרית על החול הרטוב – אבל להיזהר מקיפודי ים ואלמוגים ליד הסלעים.'],
+      ['📍','המשטח: חול לבן ודחוס; קטע סלעים קצר בין קנדווה לנונגווי שעוקפים בשפל דרך החול.']
+    ]
+  },
+  {
+    id: 'divers', cat: 'sport', lat: -5.7248, lng: 39.2935,
+    he: 'מרכז צלילה – Spanish Dancer / East Africa Diving', en: 'Spanish Dancer Divers / East Africa Diving (Nungwi)',
+    walkVia: 'חוף',
+    desc: 'מרכזי צלילה ושנורקלינג מובילים בנונגווי – צלילות לשונית, קורסי PADI, טיולי שנורקל (כולל מנמבה) וספורט ימי.',
+    tips: [
+      ['🤿','צלילה בודדת ~$60–80, קורס Open Water ~$450–550; שנורקל מודרך ~$35–60.'],
+      ['⏰','יציאות בוקר (08:00–09:00) – ים שקט וראות טובה יותר.'],
+      ['📄','להביא תעודת צלילה/לוגבוק; לא לטוס 18–24 שעות אחרי צלילה (חשוב לתכנן לפני יום החזרה!).']
+    ]
+  },
+  {
+    id: 'kendwa-water', cat: 'sport', lat: -5.7460, lng: 39.2890,
+    he: 'מרכז ספורט ימי קנדווה', en: 'Kendwa Water Sports Hub',
+    walkVia: 'חוף',
+    desc: 'SUP, קיאקים, אופנועי ים ומצנחי רחיפה (פאראסייל) בחוף קנדווה – המים כאן שקטים יחסית וכמעט בלי השפעת גאות, אידיאלי לחתירה.',
+    tips: [
+      ['🏄','SUP/קיאק ~$15–25 לשעה, אופנוע ים ~$50–80 ל-30 דק׳, פאראסייל ~$60–90.'],
+      ['⏰','בוקר מוקדם לחתירה על מים חלקים; אחר הצהריים יותר רוח.'],
+      ['✅','לוודא אפודי הצלה ולסכם מחיר מראש לפני תחילת הפעילות.']
+    ]
+  },
+
+  /* ---------- 4. Attractions & nature ---------- */
+  {
+    id: 'baraka', cat: 'nature', lat: -5.7212, lng: 39.3025,
+    he: 'האקווריום הטבעי ברקה', en: 'Baraka Natural Aquarium',
+    walkVia: 'כביש',
+    desc: 'לגונת גאות טבעית בין הסלעים שבה שוחים לצד צבי ים שניצלו ומאכילים אותם באצות. חוויה מרגשת במיוחד – וקרובה מאוד.',
+    tips: [
+      ['💵','כניסה ~$10–15 לאדם (מזומן).'],
+      ['⏰','הכי טוב בגאות – יש יותר מים בלגונה. פתוח בערך 08:00–18:00.'],
+      ['🎒','בגד ים, נעלי מים, מגבת. לא לגעת בשריון הצבים.']
+    ]
+  },
+  {
+    id: 'mnarani', cat: 'nature', lat: -5.7200, lng: 39.3035,
+    he: 'שמורת צבי הים מנאראני', en: 'Mnarani Marine Turtles Conservation Pond',
+    walkVia: 'כביש',
+    desc: 'מתחם שימור צבי ים בקצה הצפוני של נונגווי, ליד המגדלור. הכנסות מהביקור משמשות לשיקום ולשחרור צבים לים ולחינוך בקהילה.',
+    tips: [
+      ['💵','כניסה ~$10 (מזומן).'],
+      ['⏰','בוקר או אחר-צהריים; ביקור של 30–45 דק׳.'],
+      ['💡','אפשר לשלב באותו סיבוב עם ברקה ועם מספנת הדאו – הכול במרחק הליכה זה מזה.']
+    ]
+  },
+  {
+    id: 'mnemba', cat: 'nature', lat: -5.7250, lng: 39.2930,
+    he: 'שייט לאי מנמבה – שנורקל ודולפינים', en: 'Mnemba Island Snorkeling & Dolphins (departure point)',
+    highlight: { text: '🐬 חצי יום · שנורקל באלמוגים', cls: 'trip' },
+    walkVia: 'חוף',
+    desc: 'נקודת היציאה בחוף נונגווי לשייט חצי יום לאטול מנמבה: שנורקל בשונית אלמוגים עשירה, דגים טרופיים, צבים ולרוב גם תצפית דולפינים. כולל בדרך כלל ציוד, פירות ומים.',
+    tips: [
+      ['⏰','יציאה 08:00–08:30, חזרה ~13:00–14:00. הים שקט יותר בבוקר.'],
+      ['💵','סיור משותף ~$35–60 לאדם + דמי כניסה לשמורה ימית (~$10–15). סירה פרטית יקרה יותר.'],
+      ['🎒','קרם הגנה ידידותי לשונית, חולצת UV, כדור נגד בחילה, מזומן לדמי שמורה.'],
+      ['🐬','לא לרדוף אחרי דולפינים – לבחור מפעיל אחראי שלא "מקיף" את הלהקות.']
+    ]
+  },
+  {
+    id: 'dhow', cat: 'nature', lat: -5.7205, lng: 39.3015,
+    he: 'מספנת סירות הדאו המסורתיות', en: 'Nungwi Dhow Boatyard',
+    walkVia: 'חוף',
+    desc: 'על החוף בנונגווי בעלי מלאכה מקומיים בונים בעבודת יד סירות מפרש מעץ בשיטות בנות מאות שנים. מקום מרתק לצילום ולשיחה עם הבונים.',
+    tips: [
+      ['💵','חינם (טיפ קטן מתקבל בברכה אם מצלמים מקרוב).'],
+      ['⏰','בבוקר – אז העבודה בעיצומה.'],
+      ['🙏','לבקש רשות לפני צילום אנשים; לבוש צנוע כשיוצאים מאזור החוף לכפר.']
+    ]
+  },
+  {
+    id: 'stone-town', cat: 'nature', lat: -6.1622, lng: 39.1921, isTrip: true,
+    he: 'סטון טאון, אי האסירים וחוף נאקופנדה', en: 'Stone Town, Changuu (Prison) Island & Nakupenda Sandbank',
+    highlight: { text: '🚐 טיול יום / עצירה בדרך לשדה התעופה', cls: 'trip' },
+    walk: null, taxi: 75, distOverride: 58, walkVia: 'כביש',
+    desc: 'העיר העתיקה (אתר מורשת עולמית של אונסק״ו) – סמטאות, דלתות מגולפות, השוק ובית הפלאות. משם שייט קצר לאי צ׳אנגו (אי האסירים) עם הצבים הענקיים, ולשרטון החול נאקופנדה לשחייה וארוחת דגים. ~58 ק״מ / 75 דק׳ נסיעה דרומה, ורק ~15 דק׳ משדה התעופה ZNZ.',
+    tips: [
+      ['🧳','ביום הטיסה: נהג פרטי ליום שלם עם המזוודות ברכב, סיור בסטון טאון ומשם לשדה.'],
+      ['💵','נהג/מונית צפון↔סטון טאון ~$40–60 לכיוון; סירה לאי האסירים + נאקופנדה ~$25–45 לאדם; כניסה לאי ~$4.'],
+      ['👗','לבוש צנוע בעיר (כתפיים וברכיים מכוסות).'],
+      ['🌙','בערב – שוק האוכל בגני פורודאני (Forodhani) ליד הים.']
+    ]
+  },
+
+  /* ---------- 5. Logistics ---------- */
+  {
+    id: 'atm', cat: 'logistics', lat: -5.7275, lng: 39.2985,
+    he: 'כספומטים והחלפת כספים – מרכז נונגווי', en: 'Nungwi Center ATMs & Currency Exchange',
+    walkVia: 'כביש',
+    desc: 'הכספומטים והחלפנים הקרובים והאמינים ביותר במרכז הכפר נונגווי. שימושי למזומן לטיפים, למוניות, לכניסות ולברים בחוף.',
+    tips: [
+      ['💳','הכספומטים מוציאים שילינג טנזני (TZS); לפעמים ריקים בסופי שבוע – כדאי למשוך מוקדם.'],
+      ['💵','דולרים מתקבלים בהרבה מקומות – רק שטרות מ-2009 ואילך ובמצב טוב.'],
+      ['🔒','למשוך ביום, במכשיר בתוך סניף/חנות אם אפשר.']
+    ]
+  },
+  {
+    id: 'pharmacy', cat: 'logistics', lat: -5.7270, lng: 39.2975,
+    he: 'בית מרקחת ומינימרקטים – נונגווי', en: 'Nungwi Pharmacy & Mini-Markets',
+    walkVia: 'כביש',
+    desc: 'בתי מרקחת קטנים ומינימרקטים בכפר: מים, חטיפים, קרם הגנה, ספריי נגד יתושים, תכשירים לבטן ומלחי ייבוש (ORS).',
+    tips: [
+      ['🧴','קרם הגנה וקרם אחרי שמש יקרים יותר מבבית – אבל זמינים.'],
+      ['💧','בקבוק מים גדול זול בהרבה מאשר בבר החוף.'],
+      ['⏰','רוב החנויות פתוחות בערך 08:00–21:00.']
+    ]
+  }
+];
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+const toRad = d => d * Math.PI / 180;
+function haversine(a, b) {
+  const R = 6371;
+  const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function routeLength(pts) {
+  let s = 0;
+  for (let i = 1; i < pts.length; i++) s += haversine({lat:pts[i-1][0],lng:pts[i-1][1]},{lat:pts[i][0],lng:pts[i][1]});
+  return s;
+}
+const fmtMin = m => {
+  if (m == null) return '—';
+  if (m < 60) return `${Math.max(1, Math.round(m))} דק׳`;
+  const h = Math.floor(m / 60), r = Math.round(m % 60);
+  return r ? `${h} ש׳ ${r} דק׳` : `${h} ש׳`;
+};
+const fmtKm = km => km < 1 ? `${Math.round(km * 1000)} מ׳` : `${km.toFixed(km < 10 ? 1 : 0)} ק״מ`;
+const gmapsDir = (lat, lng) => `https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${lat},${lng}`;
+const isMobile = () => window.matchMedia('(max-width: 860px)').matches;
+
+const RUN_KM = routeLength(RUN_ROUTE);
+
+/* Pre-compute distance / walking / taxi times */
+POIS.forEach(p => {
+  const straight = haversine(HOTEL, p);
+  p.dist = p.distOverride ?? straight;
+  if (p.isRoute) {
+    p.dist = RUN_KM;
+    p.walk = RUN_KM / 5 * 60;          // walking the whole stretch @ 5 km/h
+    p.run = RUN_KM / 10 * 60;          // easy running @ 6:00 min/km
+    p.taxi = null;
+    p.sortDist = 0;
+    return;
+  }
+  p.sortDist = p.dist;
+  // Beach walk ≈ 1.15× straight line; road walk ≈ 1.35×, at 4.8 km/h
+  if (p.walk === undefined) {
+    const factor = p.walkVia === 'חוף' ? 1.15 : 1.35;
+    p.walk = straight * factor / 4.8 * 60;
+  }
+  // Taxi: road detour ×1.5 at ~25 km/h on Nungwi road + 3 min pickup/turnaround
+  if (p.taxi === undefined) p.taxi = straight * 1.5 / 25 * 60 + 3;
+});
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = { cat: 'all', q: '', sortByDist: false, selected: null };
+
+/* =========================================================
+   MAP
+   ========================================================= */
+const map = L.map('map', { zoomControl: false, attributionControl: true }).setView([HOTEL.lat, HOTEL.lng], 14);
+L.control.zoom({ position: 'topleft' }).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19, subdomains: 'abcd',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
+
+/* Running route */
+const routeGroup = L.layerGroup().addTo(map);
+L.polyline(RUN_ROUTE, { color: '#ffffff', weight: 9, opacity: .85, lineCap: 'round' }).addTo(routeGroup);
+const routeLine = L.polyline(RUN_ROUTE, { color: '#e8603c', weight: 4.5, dashArray: '10 9', lineCap: 'round' })
+  .addTo(routeGroup)
+  .bindTooltip(`🏃 מסלול ריצת חוף · ${RUN_KM.toFixed(1)} ק״מ`, { sticky: true, direction: 'top', className: 'route-tip' });
+routeLine.on('click', () => selectPoi('run-route', { fromMap: true }));
+const endIcon = txt => L.divIcon({ className: '', html: `<div class="route-end">${txt}</div>`, iconSize: [90, 22], iconAnchor: [45, 11] });
+L.marker(RUN_ROUTE[0], { icon: endIcon('קצה קנדווה'), interactive: false }).addTo(routeGroup);
+L.marker(RUN_ROUTE[RUN_ROUTE.length - 1], { icon: endIcon('קצה נונגווי'), interactive: false }).addTo(routeGroup);
+
+/* Home marker */
+const homeIcon = L.divIcon({ className: '', html: '<div class="home-pin"><div class="pulse"></div><div class="core"><span>🏨</span></div></div>', iconSize: [52, 52], iconAnchor: [26, 46], popupAnchor: [0, -40] });
+const homeMarker = L.marker([HOTEL.lat, HOTEL.lng], { icon: homeIcon, zIndexOffset: 2000 }).addTo(map)
+  .bindPopup(`
+    <span class="badge" style="background:#f6cd5c;color:#4a3304">⭐ נקודת הבית</span>
+    <div class="pp-title">Riu Palace Zanzibar</div>
+    <p class="pp-desc">המלון שלכם על חוף נונגווי רואד. מכאן מחושבים כל המרחקים וזמני ההליכה והמונית.</p>
+    <div class="pp-actions"><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${HOTEL.lat},${HOTEL.lng}">📍 פתח ב-Google Maps</a></div>`);
+
+/* POI markers */
+const markers = {};
+function pinIcon(p, selected) {
+  const c = CATS[p.cat];
+  return L.divIcon({
+    className: '',
+    html: `<div class="poi-pin ${selected ? 'sel' : ''}" style="background:${c.color}"><span>${p.isRoute ? '🏃' : p.isTrip ? '🏛️' : c.icon}</span></div>`,
+    iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -32]
+  });
+}
+function popupHtml(p) {
+  const c = CATS[p.cat];
+  const timeRow = p.isRoute
+    ? `<span>📏 <b>${fmtKm(p.dist)}</b></span><span>🏃 <b>${fmtMin(p.run)}</b></span><span>🚶 <b>${fmtMin(p.walk)}</b></span>`
+    : `<span>📏 <b>${fmtKm(p.dist)}</b></span><span>🚶 <b>${p.walk == null ? 'לא רלוונטי' : fmtMin(p.walk)}</b></span><span>🚕 <b>${fmtMin(p.taxi)}</b></span>`;
+  return `
+    <span class="badge" style="background:${c.bg};color:${c.color}">${c.icon} ${c.label}</span>
+    <div class="pp-title">${p.he}</div>
+    <div class="pp-row">${timeRow}</div>
+    <p class="pp-desc">${p.desc.length > 150 ? p.desc.slice(0, 148) + '…' : p.desc}</p>
+    <div class="pp-actions">
+      <a target="_blank" rel="noopener" href="${gmapsDir(p.lat, p.lng)}">🧭 נווט ב-Google Maps</a>
+      <button onclick="showCard('${p.id}')">📋 לכרטיס המלא</button>
+    </div>`;
+}
+POIS.forEach(p => {
+  const m = L.marker([p.lat, p.lng], { icon: pinIcon(p, false), riseOnHover: true })
+    .bindPopup(popupHtml(p), { maxWidth: 290, autoPanPadding: [30, 80] })
+    .addTo(map);
+  m.on('click', () => selectPoi(p.id, { fromMap: true }));
+  markers[p.id] = m;
+});
+
+/* Legend */
+document.getElementById('legend').innerHTML =
+  CAT_ORDER.map(k => `<div><i style="background:${CATS[k].color}"></i>${CATS[k].label}</div>`).join('') +
+  `<div><i class="dash"></i>מסלול ריצה (${RUN_KM.toFixed(1)} ק״מ)</div>`;
+
+function fitLocal() {
+  const local = POIS.filter(p => !p.isTrip).map(p => [p.lat, p.lng]).concat(RUN_ROUTE, [[HOTEL.lat, HOTEL.lng]]);
+  map.fitBounds(L.latLngBounds(local), { padding: [30, 30] });
+}
+fitLocal();
+
+/* =========================================================
+   LIST / FILTERS
+   ========================================================= */
+const listEl = document.getElementById('list');
+
+function renderPills() {
+  const counts = { all: POIS.length };
+  CAT_ORDER.forEach(k => counts[k] = POIS.filter(p => p.cat === k).length);
+  const items = [['all', 'הכל', '✨'], ...CAT_ORDER.map(k => [k, CATS[k].label, CATS[k].icon])];
+  document.getElementById('pills').innerHTML = items.map(([k, label, ic]) =>
+    `<button class="pill ${state.cat === k ? 'active' : ''}" data-cat="${k}">${ic} ${label} <span class="cnt">${counts[k]}</span></button>`
+  ).join('');
+}
+
+function matches(p) {
+  if (state.cat !== 'all' && p.cat !== state.cat) return false;
+  if (!state.q) return true;
+  const q = state.q.toLowerCase();
+  const hay = [p.he, p.en, p.desc, CATS[p.cat].label, ...p.tips.map(t => t[1])].join(' ').toLowerCase();
+  return q.split(/\s+/).every(w => hay.includes(w));
+}
+
+function cardHtml(p) {
+  const c = CATS[p.cat];
+  const stats = p.isRoute
+    ? `<div class="stat"><b>${fmtKm(p.dist)}</b><span>אורך הקטע</span></div>
+       <div class="stat"><b>${fmtMin(p.run)}</b><span>ריצה (6:00/ק״מ)</span></div>
+       <div class="stat"><b>${fmtMin(p.walk)}</b><span>הליכה בחוף</span></div>`
+    : `<div class="stat"><b>${fmtKm(p.dist)}</b><span>${p.isTrip ? 'נסיעה מהמלון' : 'מרחק מהמלון'}</span></div>
+       <div class="stat"><b>${p.walk == null ? '—' : fmtMin(p.walk)}</b><span>${p.walk == null ? 'לא בהליכה' : 'הליכה ב' + p.walkVia}</span></div>
+       <div class="stat"><b>${fmtMin(p.taxi)}</b><span>${p.isTrip ? 'ברכב / מונית' : 'במונית'}</span></div>`;
+  return `
+  <article class="card ${state.selected === p.id ? 'selected' : ''}" id="card-${p.id}" data-id="${p.id}" tabindex="0">
+    <div class="stripe" style="background:${c.color}"></div>
+    <div class="flex items-start justify-between gap-2">
+      <div class="min-w-0">
+        <h3>${p.he}</h3>
+        <div class="en">${p.en}</div>
+      </div>
+      <span class="badge" style="background:${c.bg};color:${c.color}">${c.icon} ${c.label}</span>
+    </div>
+    ${p.highlight ? `<div class="hl ${p.highlight.cls}">${p.highlight.text}</div>` : ''}
+    <div class="stats">${stats}</div>
+    <p class="desc">${p.desc}</p>
+    <ul class="tips">${p.tips.map(t => `<li><span class="ti">${t[0]}</span><span>${t[1]}</span></li>`).join('')}</ul>
+    <div class="actions">
+      <a class="btn-nav" target="_blank" rel="noopener" href="${gmapsDir(p.lat, p.lng)}" onclick="event.stopPropagation()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 11.3 12.7 2.3a1 1 0 0 0-1.4 0l-9 9a1 1 0 0 0 0 1.4l9 9a1 1 0 0 0 1.4 0l9-9a1 1 0 0 0 0-1.4ZM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5Z"/></svg>
+        נווט ב-Google Maps
+      </a>
+      <button class="btn-ghost" data-fly="${p.id}">🗺️ הצג במפה</button>
+    </div>
+  </article>`;
+}
+
+function renderList() {
+  let items = POIS.filter(matches);
+  if (state.sortByDist) {
+    items = items.slice().sort((a, b) => a.sortDist - b.sortDist);
+  } else {
+    items = items.slice().sort((a, b) => CAT_ORDER.indexOf(a.cat) - CAT_ORDER.indexOf(b.cat));
+  }
+  const meta = `<div class="result-meta"><span>${items.length} מקומות${state.cat !== 'all' ? ' · ' + CATS[state.cat].label : ''}</span><span>${state.sortByDist ? '↓ מהקרוב לרחוק' : 'לפי קטגוריה'}</span></div>`;
+  listEl.innerHTML = items.length
+    ? meta + items.map(cardHtml).join('')
+    : `<div class="empty">🔍<br>לא נמצאו מקומות התואמים לחיפוש.<br><button class="btn-ghost mt-3" id="clearSearch">ניקוי חיפוש</button></div>`;
+
+  // Markers visibility sync
+  const visible = new Set(items.map(p => p.id));
+  POIS.forEach(p => {
+    const m = markers[p.id];
+    if (visible.has(p.id)) { if (!map.hasLayer(m)) m.addTo(map); }
+    else if (map.hasLayer(m)) map.removeLayer(m);
+  });
+  const showRoute = visible.has('run-route') || (state.cat === 'all' && !state.q);
+  if (showRoute && !map.hasLayer(routeGroup)) routeGroup.addTo(map);
+  if (!showRoute && map.hasLayer(routeGroup)) map.removeLayer(routeGroup);
+}
+
+function render() { renderPills(); renderList(); }
+
+/* =========================================================
+   SELECTION & SYNC
+   ========================================================= */
+function setSelectedMarker(id) {
+  POIS.forEach(p => markers[p.id].setIcon(pinIcon(p, p.id === id)));
+  if (id && markers[id]) markers[id].setZIndexOffset(1500);
+  POIS.forEach(p => { if (p.id !== id) markers[p.id].setZIndexOffset(0); });
+}
+
+function highlightCard(id, scroll) {
+  document.querySelectorAll('.card.selected').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('card-' + id);
+  if (!el) return;
+  el.classList.add('selected');
+  if (scroll) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  }
+}
+
+function flyToPoi(p) {
+  if (p.isRoute) {
+    map.flyToBounds(routeLine.getBounds(), { padding: [40, 40], duration: 1.1 });
+    setTimeout(() => markers[p.id].openPopup(), 1150);
+    return;
+  }
+  const zoom = p.isTrip ? 12 : 16;
+  map.flyTo([p.lat, p.lng], zoom, { duration: p.isTrip ? 1.8 : 1.1 });
+  map.once('moveend', () => markers[p.id].openPopup());
+}
+
+function selectPoi(id, { fromMap = false } = {}) {
+  const p = POIS.find(x => x.id === id);
+  if (!p) return;
+  state.selected = id;
+  setSelectedMarker(id);
+  if (fromMap) {
+    // Ensure the card exists (it may be filtered out)
+    if (!document.getElementById('card-' + id)) { state.cat = 'all'; state.q = ''; document.getElementById('search').value = ''; render(); }
+    highlightCard(id, !isMobile());
+    if (p.isRoute) markers[id].openPopup();
+  } else {
+    highlightCard(id, false);
+    if (isMobile()) setView('map');
+    setTimeout(() => flyToPoi(p), isMobile() ? 120 : 0);
+  }
+}
+
+/* From popup "full card" button */
+window.showCard = function (id) {
+  map.closePopup();
+  if (!document.getElementById('card-' + id)) { state.cat = 'all'; state.q = ''; document.getElementById('search').value = ''; render(); }
+  if (isMobile()) setView('list');
+  setTimeout(() => highlightCard(id, true), 60);
+};
+
+/* =========================================================
+   MOBILE VIEW TOGGLE
+   ========================================================= */
+function setView(v) {
+  document.body.classList.toggle('view-map', v === 'map');
+  document.body.classList.toggle('view-list', v === 'list');
+  document.querySelectorAll('#viewToggle button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  if (v === 'map') setTimeout(() => map.invalidateSize(), 30);
+}
+document.getElementById('viewToggle').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (b) setView(b.dataset.view);
+});
+window.addEventListener('resize', () => map.invalidateSize());
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+document.getElementById('pills').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if (!b) return;
+  state.cat = b.dataset.cat; render();
+  listEl.scrollTop = 0;
+});
+let searchT;
+document.getElementById('search').addEventListener('input', e => {
+  clearTimeout(searchT);
+  searchT = setTimeout(() => { state.q = e.target.value.trim(); renderList(); }, 120);
+});
+document.getElementById('sortBtn').addEventListener('click', e => {
+  state.sortByDist = !state.sortByDist;
+  e.currentTarget.classList.toggle('on', state.sortByDist);
+  e.currentTarget.setAttribute('aria-pressed', state.sortByDist);
+  renderList();
+});
+listEl.addEventListener('click', e => {
+  if (e.target.id === 'clearSearch') { state.q = ''; state.cat = 'all'; document.getElementById('search').value = ''; render(); return; }
+  const fly = e.target.closest('[data-fly]');
+  const card = e.target.closest('.card');
+  if (fly) { e.stopPropagation(); selectPoi(fly.dataset.fly); return; }
+  if (card && !e.target.closest('a')) selectPoi(card.dataset.id);
+});
+listEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.classList.contains('card')) selectPoi(e.target.dataset.id);
+});
+function goHome() {
+  state.selected = null; setSelectedMarker(null);
+  document.querySelectorAll('.card.selected').forEach(el => el.classList.remove('selected'));
+  if (isMobile()) setView('map');
+  setTimeout(() => { map.flyTo([HOTEL.lat, HOTEL.lng], 15, { duration: 1 }); map.once('moveend', () => homeMarker.openPopup()); }, 80);
+}
+document.getElementById('hotelCard').addEventListener('click', goHome);
+document.getElementById('recenter').addEventListener('click', goHome);
+
+/* =========================================================
+   ITINERARY (19–22 Nov)
+   ========================================================= */
+const ITIN = [
+  {
+    date: '19.11', day: 'חמישי', title: 'נחיתה והתאקלמות',
+    intro: 'יום רגוע אחרי הטיסה: היכרות עם החוף, ריצה/הליכה קלה ושקיעה ראשונה בנונגווי.',
+    items: [
+      { t: '14:00', h: 'צ׳ק-אין בריו פאלאס', p: 'מנוחה, בריכה והתאקלמות. לוודא שיש מזומן קטן לטיפים.', poi: null },
+      { t: '16:30', h: 'הליכת היכרות לאורך החוף צפונה', p: 'הליכה של ~25 דק׳ על החול לכיוון נונגווי – לבדוק את מצב הגאות לקראת ריצת הבוקר.', poi: 'run-route' },
+      { t: '18:00', h: 'שקיעה בסאנסט בר', p: 'קוקטייל ראשון עם הרגליים בחול.', poi: 'sunset-bar' },
+      { t: '19:30', h: 'ארוחת ערב: דג היום על הגריל', p: 'ארוחה עשירה בחלבון בפישרמן׳ס, ממש ליד.', poi: 'fishermans' },
+      { t: '21:30', h: 'מונית חזרה למלון', p: '~5 דק׳ נסיעה. לילה מוקדם – מחר יציאה לים.', poi: null }
+    ]
+  },
+  {
+    date: '20.11', day: 'שישי', title: 'ים, צבים ושנורקל',
+    intro: 'יום ימי מלא: ריצת בוקר, שייט למנמבה עם דולפינים, ואחר הצהריים צבי ים בקצה הצפוני.',
+    items: [
+      { t: '06:30', h: 'ריצת חוף בוקר ~5 ק״מ', p: 'מהמלון צפונה עד קצה נונגווי וחזרה, על החול הרטוב לפני החום.', poi: 'run-route' },
+      { t: '08:15', h: 'שייט חצי יום לאי מנמבה', p: 'שנורקל בשונית ותצפית דולפינים. לקחת קרם הגנה ידידותי לשונית ומזומן לדמי שמורה.', poi: 'mnemba' },
+      { t: '14:00', h: 'צהריים בלאנגי לאנגי', p: 'קארי דגים סוואהילי מול הים.', poi: 'langi-langi' },
+      { t: '16:00', h: 'שחייה עם צבים באקווריום ברקה', p: 'אחרי זה – הליכה קצרה למספנת הדאו ולשמורת מנאראני.', poi: 'baraka' },
+      { t: '17:15', h: 'מספנת הדאו בשעת אחר הצהריים', p: 'צילומים של סירות העץ באור הזהוב.', poi: 'dhow' },
+      { t: '20:00', h: 'ערב בנונגווי: מאמא מיה ← ג׳רי׳ס', p: 'פיצה וג׳לטו, ואז מוזיקה חיה בבר של ג׳רי. לחסוך כוח למחר!', poi: 'gerrys' }
+    ]
+  },
+  {
+    date: '21.11', day: 'שבת', title: '🌕 מסיבת הירח המלא', party: true,
+    intro: 'יום השיא! בוקר עצל, ספורט ימי בקנדווה, מנוחה אחר הצהריים – ובלילה מסיבת הירח המלא בקנדווה רוקס עד הזריחה.',
+    items: [
+      { t: '08:00', h: 'בוקר עצל במלון', p: 'ארוחת בוקר ארוכה ובריכה. אפשר ריצה קצרה ~3.5 ק״מ דרומה לקנדווה וחזרה.', poi: null },
+      { t: '10:30', h: 'SUP / קיאק בקנדווה', p: 'המים בקנדווה שקטים יחסית – אידיאלי לחתירה. הליכה של ~15 דק׳ בחוף.', poi: 'kendwa-water' },
+      { t: '13:30', h: 'צהריים קלים בבדולינה', p: 'צלחת גריל וסלטים במסעדת הגן – ומשם מנוחה וסייסטה.', poi: 'badolina' },
+      { t: '15:00', h: 'משיכת מזומן ומצרכים', p: 'כספומט לפני המסיבה (כניסה ומשקאות במזומן) ומים/אלקטרוליטים מהמינימרקט.', poi: 'atm' },
+      { t: '18:30', h: 'שקיעה בקנדווה רוקס', p: 'להגיע מוקדם, לתפוס מקום, ארוחת ערב במקום.', poi: 'kendwa-rocks', star: true },
+      { t: '22:00', h: 'מסיבת הירח המלא – Full Moon Party', p: 'DJs, מופעי אש ורחבה על החול עד הבוקר. לחזור למלון במונית (~4 דק׳) – לא ללכת בחוף בחושך בגאות.', poi: 'kendwa-rocks', star: true }
+    ]
+  },
+  {
+    date: '22.11', day: 'ראשון', title: 'סטון טאון ודרך לשדה',
+    intro: 'יום יציאה: צ׳ק-אאוט, ונהג פרטי לכל היום עם המזוודות ברכב – סטון טאון, אי האסירים, נאקופנדה, ומשם 15 דק׳ לשדה ZNZ.',
+    items: [
+      { t: '09:30', h: 'צ׳ק-אאוט ובראנץ׳', p: 'לא לתכנן צלילת מכלים ביום הזה – אסור לטוס 18–24 שעות אחרי צלילה.', poi: null },
+      { t: '10:30', h: 'נסיעה דרומה (~75 דק׳)', p: 'נהג פרטי שתואם מראש; המזוודות נשארות ברכב.', poi: 'stone-town' },
+      { t: '12:00', h: 'שייט לאי האסירים ולנאקופנדה', p: 'צבים ענקיים באי צ׳אנגו, שחייה וארוחת דגים על שרטון החול.', poi: 'stone-town' },
+      { t: '15:30', h: 'סיור בסמטאות סטון טאון', p: 'השוק, הדלתות המגולפות וחוף פורודאני. לבוש צנוע.', poi: 'stone-town' },
+      { t: '18:00', h: 'נסיעה לשדה התעופה ZNZ', p: '~15 דק׳ נסיעה. להגיע 2.5–3 שעות לפני טיסה בינלאומית.', poi: null }
+    ]
+  }
+];
+let activeDay = 2; // open on the party day by default
+function renderItin() {
+  document.getElementById('dayTabs').innerHTML = ITIN.map((d, i) =>
+    `<button class="day-tab ${i === activeDay ? 'on' : ''} ${d.party ? 'party' : ''}" data-day="${i}"><b>${d.party ? '🌕 ' : ''}${d.day} ${d.date}</b><small>${d.title.replace('🌕 ', '')}</small></button>`
+  ).join('');
+  const d = ITIN[activeDay];
+  document.getElementById('dayBody').innerHTML = `
+    <div class="day-intro"><strong>יום ${activeDay + 1} · ${d.day} ${d.date} · ${d.title}</strong><br>${d.intro}</div>
+    <div class="tl">
+      ${d.items.map(it => {
+        const p = it.poi && POIS.find(x => x.id === it.poi);
+        return `<div class="tl-item ${it.star ? 'star' : ''}">
+          <div class="tl-time">${it.t}</div>
+          <h4>${it.h}</h4>
+          <p>${it.p}</p>
+          ${p ? `<button class="tl-link" data-goto="${p.id}">📍 ${p.he}${p.isTrip ? '' : ' · ' + fmtKm(p.dist)}</button>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+const itinEl = document.getElementById('itin');
+document.getElementById('openItin').addEventListener('click', () => { renderItin(); itinEl.classList.add('open'); });
+document.getElementById('closeItin').addEventListener('click', () => itinEl.classList.remove('open'));
+itinEl.addEventListener('click', e => {
+  if (e.target === itinEl) { itinEl.classList.remove('open'); return; }
+  const tab = e.target.closest('[data-day]');
+  if (tab) { activeDay = +tab.dataset.day; renderItin(); document.getElementById('dayBody').scrollTop = 0; return; }
+  const go = e.target.closest('[data-goto]');
+  if (go) {
+    itinEl.classList.remove('open');
+    if (!document.getElementById('card-' + go.dataset.goto)) { state.cat = 'all'; state.q = ''; document.getElementById('search').value = ''; render(); }
+    selectPoi(go.dataset.goto);
+    if (!isMobile()) highlightCard(go.dataset.goto, true);
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') itinEl.classList.remove('open'); });
+
+/* =========================================================
+   INIT
+   ========================================================= */
+render();
+setTimeout(() => map.invalidateSize(), 200);
+</script>
+</body>
+</html>
