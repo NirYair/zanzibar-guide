@@ -82,6 +82,9 @@
   .hl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:10px;background:linear-gradient(135deg,#2a1a5e,#5b3fb5);color:#fff;margin-top:8px}
   .hl.trip{background:linear-gradient(135deg,#8a4b08,#d99a1e)}
   .hl.run{background:linear-gradient(135deg,#a8361a,var(--coral))}
+  .hl.shop{background:linear-gradient(135deg,#86198f,#c026d3)}
+  .hl.near{background:linear-gradient(135deg,#0b4f55,#13808a)}
+  .warn{margin-top:8px;font-size:12.8px;line-height:1.5;font-weight:600;color:#7a3e00;background:#fff4e0;border:1.5px solid #f2c27a;border-radius:10px;padding:6px 10px}
   .card h3{font-size:16.5px;font-weight:700;line-height:1.3;margin:0}
   .card .en{font-size:12px;color:var(--muted);direction:ltr;text-align:right}
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:11px 0 9px}
@@ -454,12 +457,14 @@ const HOTEL = { lat: -5.7366, lng: 39.2912, name: 'Riu Palace Zanzibar' };
 
 const CATS = {
   nightlife: { label: 'חיי לילה ושקיעות', color: '#7c3aed', bg: '#efe7fe', icon: '🌅' },
+  beach:     { label: 'ביץ׳ קלאבים',        color: '#4338ca', bg: '#e5e7ff', icon: '🏖️' },
   food:      { label: 'אוכל וגריל',        color: '#e8603c', bg: '#fde9e2', icon: '🍤' },
   sport:     { label: 'ריצה וספורט ימי',   color: '#0891b2', bg: '#dff4f9', icon: '🏃' },
   nature:    { label: 'אטרקציות וטבע',     color: '#15803d', bg: '#e1f5e7', icon: '🐢' },
+  shopping:  { label: 'קניונים וקניות',     color: '#c026d3', bg: '#fbe6fd', icon: '🛍️' },
   logistics: { label: 'לוגיסטיקה',          color: '#475569', bg: '#e9edf2', icon: '🏧' }
 };
-const CAT_ORDER = ['nightlife','food','sport','nature','logistics'];
+const CAT_ORDER = ['nightlife','beach','food','sport','nature','shopping','logistics'];
 
 /* Coastal running route: Kendwa south → Kendwa Rocks → Riu Palace → Nungwi beach → Nungwi north tip */
 const RUN_ROUTE = [
@@ -694,6 +699,168 @@ const POIS = [
       ['💧','בקבוק מים גדול זול בהרבה מאשר בבר החוף.'],
       ['⏰','רוב החנויות פתוחות בערך 08:00–21:00.']
     ]
+  },
+
+  /* ---------- 6. Beach clubs ---------- */
+  {
+    id: 'coccobello', cat: 'beach', lat: -5.7495, lng: 39.2880,
+    he: 'קוקובלו – מועדון ריקודים', en: 'Coccobello Zanzibar (Kendwa / Nungwi)',
+    walkVia: 'חוף',
+    desc: 'מועדון לילה פופולרי בין קנדווה לנונגווי עם מוזיקה מקומית ובינלאומית, רחבה עד מאוחר וקהל מעורב של מקומיים ומטיילים. יש בו גם חדרי לינה, ובלילות בלי מסיבה הוא שקט לגמרי.',
+    warn: 'זה מועדון לילה ולא ביץ׳ קלאב יומי, ולפי ביקורות פתוח כ-3 לילות בשבוע (בערך רביעי, חמישי, ראשון). המיקום על המפה משוער – לבדוק במפות ולאשר שיש אירוע לפני שיוצאים.',
+    tips: [
+      ['⏰','להגיע אחרי 23:00 – הרחבה מתמלאת מאוחר.'],
+      ['💵','כניסה לפי ביקורות ~20,000 TZS; המשקאות יקרים יחסית.'],
+      ['🚕','בחזרה – מונית מסודרת, לא הליכה בחוף בחושך.']
+    ]
+  },
+  {
+    id: 'z-rooftop', cat: 'beach', lat: -5.7242, lng: 39.2932,
+    he: 'Z Hotel – רופטופ וסינמון לאונג׳', en: 'The Z Hotel Rooftops & Cinnamon (Nungwi)',
+    highlight: { text: '🌇 מנקודות השקיעה הטובות בנונגווי', cls: 'near' },
+    walkVia: 'חוף',
+    desc: 'מתחם שתי קומות במלון הבוטיק Z על חוף נונגווי: Cinnamon בקומה התחתונה ובר Rooftops פתוח למעלה עם ספות לאונג׳ ונוף לים. תפריט בהשראה אסייתית וקוקטיילים.',
+    tips: [
+      ['⏰','להגיע ~17:45 כדי לתפוס ספה לשקיעה (~18:30).'],
+      ['👔','לבוש קז׳ואל-מוקפד; לא בגד ים.'],
+      ['💵','יקר יחסית לנונגווי – קוקטייל ~$10–14; כדאי לשריין שולחן לשקיעה.']
+    ]
+  },
+  {
+    id: 'why-not', cat: 'beach', lat: -5.7228, lng: 39.2955,
+    he: 'Why Not – מועדון חוף', en: 'Why Not Club',
+    walkVia: 'חוף',
+    desc: 'מועדון חוף פתוח עם DJs בהשראת איביזה וברלין, ריקודים על החול וערבי אירועים.',
+    warn: 'לא הצלחתי לאמת שהמועדון נמצא בנונגווי, וגם לא מיקום מדויק – לבדוק בגוגל מפות/אינסטגרם לפני שיוצאים.',
+    tips: [
+      ['⏰','אירועים בעיקר בלילות סוף שבוע – לבדוק תוכנייה.'],
+      ['💵','כניסה ומשקאות משתנים לפי אירוע; מזומן.'],
+      ['🎒','כפכפים, מזומן קטן, נרתיק לטלפון.']
+    ]
+  },
+  {
+    id: 'natural-kendwa', cat: 'beach', lat: -5.7465, lng: 39.2888,
+    he: 'Natural Kendwa – ברי חוף ומיטות שיזוף', en: 'Natural Kendwa Villa – Beach Bars',
+    walkVia: 'חוף',
+    desc: 'מלון בוטיק קטן (14 חדרים, שופץ ב-2023) על חוף קנדווה עם שני ברי חוף, מיטות שיזוף ושמשיות, ומים צלולים לשחייה גם בשפל. מקום רגוע לבילוי יום ליד קנדווה רוקס.',
+    tips: [
+      ['💵','מיטות שיזוף בדרך כלל בתמורה להזמנה מהבר – לשאול מראש.'],
+      ['⏰','שעות הצהריים לשחייה; שקיעה מצוינת מהחוף.'],
+      ['🚶','הליכה קצרה בחוף מהמלון – אפשר לשלב עם קנדווה רוקס.']
+    ]
+  },
+
+  /* ---------- 7. More restaurants ---------- */
+  {
+    id: 'essque-jetty', cat: 'food', lat: -5.7195, lng: 39.3005,
+    he: 'Essque Zalu – מסעדת The Jetty', en: 'Essque Zalu – The Jetty Restaurant',
+    highlight: { text: '✨ לערב מיוחד · מסעדה על מזח מעל הים', cls: 'near' },
+    walkVia: 'כביש',
+    desc: 'מסעדה בקצה מזח עץ ארוך שנמתח אל האוקיינוס, באתר הנופש היוקרתי Essque Zalu בצפון האי. דגים ופירות ים, מנות בהשראה ים-תיכונית/ערבית וקוקטיילי שקיעה.',
+    warn: 'המיקום על המפה משוער (אתר הנופש בחוף המזרחי של חצי האי נונגווי), ובעונה השקטה המסעדה סגורה בחלק מימי השבוע – להתקשר לשריין ולוודא.',
+    tips: [
+      ['👔','סמארט-קז׳ואל: מכנסיים ארוכים/שמלה קלה.'],
+      ['📅','לשריין מראש שולחן בקצה המזח לשקיעה.'],
+      ['💵','יקר: עיקריות ~$25–45.']
+    ]
+  },
+  {
+    id: 'the-corner', cat: 'food', lat: -5.7258, lng: 39.2940,
+    he: 'The Corner – פיצה ופירות ים', en: 'The Corner (Nungwi)',
+    walkVia: 'כביש',
+    desc: 'מסעדה מומלצת בנונגווי (מאז 2018) הידועה בפיצות מתנור עצים ובמנות פירות ים, באווירה פשוטה ונעימה ובמחירים טובים.',
+    warn: 'לא מצאתי מקום בשם "The Corner Bar & Grill" עם מגשי פירות ים ענקיים; זה הכי קרוב – מסעדה איטלקית עם פירות ים. לבדוק בגוגל מפות שזה המקום הנכון.',
+    tips: [
+      ['⏰','שעות לפי רישום: ~12:30–21:45.'],
+      ['🍕','פיצה מתנור עצים + מנת פירות ים לחלוק.'],
+      ['💵','פיצה ~$8–14.']
+    ]
+  },
+  {
+    id: 'baraka-beach', cat: 'food', lat: -5.7222, lng: 39.2968,
+    he: 'מסעדת ברקה על החוף', en: 'Baraka Beach Restaurant (Nungwi)',
+    walkVia: 'חוף',
+    desc: 'מסעדה על קו המים בחוף הצפוני של נונגווי: דג היום על הגריל, פירות ים ומנות סוואהיליות במחירים מקומיים.',
+    tips: [
+      ['🐟','לשאול מה הגיע היום מהדייגים ולבחור את הדג בעצמכם.'],
+      ['💵','עיקריות ~$8–18.'],
+      ['💡','משתלב טוב עם ביקור באקווריום ברקה ובמספנת הדאו.']
+    ]
+  },
+  {
+    id: 'grande-luna', cat: 'food', lat: -5.7485, lng: 39.2883,
+    he: 'לה גרנדה לונה', en: 'La Grande Luna (Kendwa)',
+    walkVia: 'חוף',
+    desc: 'מסעדה על חוף קנדווה עם פיצות, פסטות פירות ים, אוכל ים-תיכוני ואפריקאי ואלכוהול – ממש על החול. פתוחה עד מאוחר.',
+    tips: [
+      ['📞','טלפון לפי רישום: ‎+255 777 000 253 – כדאי לוודא שפתוח ולשריין.'],
+      ['💡','מושלם לארוחה לפני מסיבת הירח המלא בקנדווה רוקס (2 דק׳ הליכה).'],
+      ['💵','עיקריות ~$10–20.']
+    ]
+  },
+
+  /* ---------- 8. Shopping ---------- */
+  {
+    id: 'nungwi-shops', cat: 'shopping', lat: -5.7268, lng: 39.2970,
+    he: 'סמטת בוטיקים ובגדי חוף – נונגווי', en: 'Nungwi Boutique & Resort Wear Strip',
+    highlight: { text: '📍 הקניות הקרובות למלון · ~1.3 ק״מ', cls: 'near' },
+    walkVia: 'כביש',
+    desc: 'רצועת חנויות קטנות בכפר נונגווי: בגדי פשתן לחוף, בגדי ים, משקפי שמש, קנגות, צמידים ואמנות מקומית.',
+    warn: 'זה שם כללי לאזור החנויות בכפר ולא קניון או חנות ספציפית.',
+    tips: [
+      ['💬','מתמקחים: להתחיל בערך מחצי מהמחיר. "Bei gani?" = כמה זה?'],
+      ['❄️','חנויות קטנות, לרוב בלי מיזוג – עדיף בבוקר או אחרי 16:00.'],
+      ['💵','מזומן TZS; קנגה ~10,000–20,000 TZS.']
+    ]
+  },
+  {
+    id: 'memories', cat: 'shopping', lat: -6.1628, lng: 39.1892, isTrip: true,
+    he: 'Memories of Zanzibar – סטון טאון', en: 'Memories of Zanzibar (Stone Town)',
+    highlight: { text: '🚐 עצירה ביום ראשון בדרך לשדה', cls: 'shop' },
+    walk: null, taxi: 75, distOverride: 58, walkVia: 'כביש',
+    desc: 'חנות המזכרות המאורגנת הגדולה בסטון טאון, על כמה קומות: תבלינים, בדים, בגדים, תכשיטים ומזכרות – במחירים קבועים, בלי מיקוח.',
+    tips: [
+      ['❄️','ממוזגת – הפסקה נעימה מהחום של הסמטאות.'],
+      ['💳','מחירים קבועים; בדרך כלל אפשר לשלם בכרטיס.'],
+      ['👗','לבוש צנוע בסטון טאון (כתפיים וברכיים מכוסות).']
+    ]
+  },
+  {
+    id: 'the-gallery', cat: 'shopping', lat: -6.1615, lng: 39.1895, isTrip: true,
+    he: 'The Gallery – סטון טאון', en: 'The Gallery Zanzibar (Stone Town)',
+    highlight: { text: '🚐 עצירה ביום ראשון בדרך לשדה', cls: 'shop' },
+    walk: null, taxi: 75, distOverride: 58, walkVia: 'כביש',
+    desc: 'גלריית בוטיק בסטון טאון עם בגדי ריזורט מעוצבים, תכשיטי טנזנייט, ספרים, צילום ואמנות מקומית – מקום טוב למתנה איכותית.',
+    tips: [
+      ['💎','טנזנייט: לבקש תעודה וחשבונית; לא לקנות מרוכלים ברחוב.'],
+      ['❄️','חלל סגור ונעים יותר מהשוק הפתוח.'],
+      ['💳','מחירים קבועים, כרטיס אשראי מתקבל ברוב המקרים.']
+    ]
+  },
+  {
+    id: 'michenzani', cat: 'shopping', lat: -6.1665, lng: 39.2015, isTrip: true,
+    he: 'Michenzani Mall – זנזיבר סיטי', en: 'Michenzani Mall (Zanzibar City)',
+    highlight: { text: '🚐 עצירה ביום ראשון בדרך לשדה', cls: 'shop' },
+    walk: null, taxi: 70, distOverride: 57, walkVia: 'כביש',
+    desc: 'הקניון המודרני הראשון של זנזיבר: סופרמרקט, חנויות אלקטרוניקה וטלפונים (כמו Biggie), ביגוד, כלי בית ושני בנקים עם כספומטים.',
+    tips: [
+      ['❄️','קניון סגור; יש חנייה – נוח עם נהג ומזוודות.'],
+      ['🏧','כספומטים בבנקים (עמלה על כרטיס זר).'],
+      ['ℹ️','ביקורות מעורבות – חלק מהחנויות ריקות; טוב לעצירה פרקטית, לא לחוויית קניות.']
+    ]
+  },
+  {
+    id: 'thani-mall', cat: 'shopping', lat: -6.2185, lng: 39.2245, isTrip: true,
+    he: 'Thani Mall – ליד שדה התעופה', en: 'Thani Mall (near ZNZ Airport)',
+    highlight: { text: '✈️ עצירה אחרונה לפני הטיסה', cls: 'shop' },
+    walk: null, taxi: 80, distOverride: 63, walkVia: 'כביש',
+    desc: 'מרכז קניות ממוזג ליד שדה התעופה: בגדים, בתי קפה ובית מרקחת – להעביר את הזמן לפני הטיסה.',
+    warn: 'לא מצאתי שום תיעוד למקום בשם הזה ליד השדה – לבדוק בגוגל מפות לפני שמתכננים עליו. חלופות מאומתות: Michenzani Mall, או אזור הדיוטי-פרי בטרמינל 3 החדש של השדה.',
+    tips: [
+      ['✈️','להגיע לשדה 2.5–3 שעות לפני טיסה בינלאומית.'],
+      ['🧳','מזוודות נשארות אצל הנהג.'],
+      ['❄️','ממוזג – לפי התיאור שקיבלתי.']
+    ]
   }
 ];
 
@@ -872,7 +1039,7 @@ function pinIcon(p, selected) {
   const c = CATS[p.cat];
   return L.divIcon({
     className: '',
-    html: `<div class="poi-pin ${selected ? 'sel' : ''}" style="background:${c.color}"><span>${p.isRoute ? '🏃' : p.isTrip ? '🏛️' : c.icon}</span></div>`,
+    html: `<div class="poi-pin ${selected ? 'sel' : ''}" style="background:${c.color}"><span>${p.isRoute ? '🏃' : (p.isTrip && p.cat === 'nature') ? '🏛️' : c.icon}</span></div>`,
     iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -32]
   });
 }
@@ -994,6 +1161,7 @@ function cardHtml(p) {
       <button class="fav ${isFav ? 'on' : ''}" data-fav="${p.id}" aria-pressed="${isFav}" aria-label="${isFav ? 'הסרה מהמועדפים' : 'הוספה למועדפים'}">${isFav ? '❤️' : '🤍'}</button>
     </div>
     ${p.highlight ? `<div class="hl ${p.highlight.cls}">${p.highlight.text}</div>` : ''}
+    ${p.warn ? `<div class="warn">⚠️ ${p.warn}</div>` : ''}
     <div class="stats">${stats}</div>
     <p class="desc">${p.desc}</p>
     <ul class="tips">${p.tips.map(t => `<li><span class="ti">${t[0]}</span><span>${t[1]}</span></li>`).join('')}</ul>
@@ -1232,6 +1400,7 @@ const ITIN = [
       { t: '10:30', h: 'נסיעה דרומה (~75 דק׳)', p: 'נהג פרטי שתואם מראש; המזוודות נשארות ברכב.', poi: 'stone-town' },
       { t: '12:00', h: 'שייט לאי האסירים ולנאקופנדה', p: 'צבים ענקיים באי צ׳אנגו, שחייה וארוחת דגים על שרטון החול.', poi: 'stone-town' },
       { t: '15:30', h: 'סיור בסמטאות סטון טאון', p: 'השוק, הדלתות המגולפות וחוף פורודאני. לבוש צנוע.', poi: 'stone-town' },
+      { t: '17:00', h: 'קניות אחרונות במחירים קבועים', p: 'Memories of Zanzibar או The Gallery – מזכרות, תבלינים ותכשיטים בלי מיקוח. אם נשאר זמן: Michenzani Mall בדרך לשדה.', poi: 'memories' },
       { t: '18:00', h: 'נסיעה לשדה התעופה ZNZ', p: '~15 דק׳ נסיעה. להגיע 2.5–3 שעות לפני טיסה בינלאומית.', poi: null }
     ]
   }
