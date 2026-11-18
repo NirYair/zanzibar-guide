@@ -2,9 +2,19 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cut">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>מדריך ריו פאלאס זנזיבר</title>
-<meta name="theme-color" content="#0b4f55">
+<meta name="description" content="מדריך אישי לנונגווי וקנדווה סביב Riu Palace Zanzibar – מפה, מקומות, מסלול 19–22 בנובמבר וכלים לטיול">
+<meta name="theme-color" content="#06363b">
+<!-- PWA / Add to Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="זנזיבר">
+<meta name="application-name" content="זנזיבר">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2313808a'/%3E%3Cstop offset='1' stop-color='%2306363b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Ccircle cx='256' cy='228' r='96' fill='%23f3c14d'/%3E%3Cpath d='M0 330c64-34 128-34 192 0s128 34 192 0 96-24 128-14v196H0z' fill='%23f5ecdb'/%3E%3Cpath d='M0 300c64-30 128-30 192 0s128 30 192 0 96-22 128-12' fill='none' stroke='%23fff' stroke-width='18' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon-180.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +29,9 @@
     --teal-900:#06363b; --teal-800:#0b4f55; --teal-700:#0f646b; --teal-600:#13808a; --teal-100:#dff1f1;
     --sand-50:#fbf7ef; --sand-100:#f5ecdb; --sand-200:#ecdcbf; --sand-400:#c9a979;
     --gold:#d99a1e; --gold-dark:#b07b0f; --coral:#e8603c;
-    --ink:#17282a; --muted:#5d6f71; --card:#ffffff; --line:#e7e0d2;
+    /* high-contrast neutrals for reading in bright beach sun */
+    --ink:#0f1f21; --muted:#3e5154; --card:#ffffff; --line:#d3c8b2;
+    --me:#1a73e8; --nav-h:64px;
     --shadow:0 1px 2px rgba(6,54,59,.06),0 6px 18px rgba(6,54,59,.08);
     --shadow-lg:0 10px 40px rgba(6,54,59,.22);
   }
@@ -29,7 +41,7 @@
 
   /* ---------- App shell ---------- */
   #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
-  header.top{background:linear-gradient(135deg,var(--teal-900),var(--teal-700));color:#fff;padding:12px 16px 10px;box-shadow:0 2px 12px rgba(0,0,0,.15);z-index:500;position:relative}
+  header.top{background:linear-gradient(135deg,var(--teal-900),var(--teal-700));color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));box-shadow:0 2px 12px rgba(0,0,0,.15);z-index:500;position:relative}
   .brand-sub{color:#bfe3e3;font-size:12.5px}
   .search-wrap{position:relative;flex:1;min-width:0}
   .search-wrap input{width:100%;border:0;border-radius:12px;padding:10px 38px 10px 12px;font:inherit;font-size:14.5px;background:rgba(255,255,255,.96);color:var(--ink);outline:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
@@ -60,7 +72,7 @@
 
   /* ---------- POI cards ---------- */
   .result-meta{font-size:12.5px;color:var(--muted);margin:2px 2px 10px;display:flex;justify-content:space-between;align-items:center}
-  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px 14px 12px;margin-bottom:12px;border:2px solid transparent;transition:border-color .25s, box-shadow .25s, transform .25s;cursor:pointer;position:relative;overflow:hidden}
+  .card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px 14px 12px;margin-bottom:12px;border:2px solid var(--line);transition:border-color .25s, box-shadow .25s, transform .25s;cursor:pointer;position:relative;overflow:hidden}
   .card:hover{box-shadow:0 2px 4px rgba(6,54,59,.06),0 10px 26px rgba(6,54,59,.12)}
   .card.selected{border-color:var(--gold);box-shadow:0 0 0 4px rgba(217,154,30,.18),var(--shadow)}
   .card.flash{animation:flash 1.1s ease}
@@ -76,9 +88,9 @@
   .stat{background:var(--sand-50);border:1px solid var(--line);border-radius:11px;padding:6px 8px;text-align:center}
   .stat b{display:block;font-size:14px;font-weight:700;color:var(--teal-800)}
   .stat span{font-size:11px;color:var(--muted)}
-  .desc{font-size:13.6px;line-height:1.6;color:#2c3d3f;margin:0}
+  .desc{font-size:14px;line-height:1.6;color:var(--ink);margin:0}
   .tips{list-style:none;margin:9px 0 0;padding:0;display:grid;gap:5px}
-  .tips li{font-size:12.8px;line-height:1.5;color:#33474a;display:flex;gap:7px}
+  .tips li{font-size:13.2px;line-height:1.5;color:#1f3335;display:flex;gap:7px}
   .tips li .ti{flex:0 0 18px;text-align:center}
   .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
   .btn-nav{display:inline-flex;align-items:center;gap:6px;background:var(--teal-700);color:#fff;font-size:13px;font-weight:600;padding:8px 13px;border-radius:10px;text-decoration:none;transition:.18s}
@@ -120,14 +132,16 @@
   .map-recenter{position:absolute;top:12px;right:12px;z-index:450;background:#fff;border:0;border-radius:12px;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--teal-800);box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:6px}
   .map-recenter:hover{background:var(--sand-100)}
 
-  /* ---------- Mobile toggle ---------- */
-  #viewToggle{display:none;position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:900;background:var(--teal-900);color:#fff;border-radius:999px;padding:5px;box-shadow:var(--shadow-lg);gap:4px}
-  #viewToggle button{border:0;background:transparent;color:#cfe9e9;font:inherit;font-weight:600;font-size:14px;padding:9px 18px;border-radius:999px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:.2s}
-  #viewToggle button.on{background:var(--gold);color:#1d1404}
+  /* ---------- Mobile bottom thumb-bar ---------- */
+  #bottomNav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:1300;background:var(--teal-900);border-top:1px solid rgba(255,255,255,.12);padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px));box-shadow:0 -6px 24px rgba(0,0,0,.25);gap:4px}
+  #bottomNav button{flex:1;min-height:52px;border:0;background:transparent;color:#d6eeee;font:inherit;font-size:12.5px;font-weight:600;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:background .18s,color .18s;-webkit-tap-highlight-color:transparent}
+  #bottomNav button .ic{font-size:21px;line-height:1}
+  #bottomNav button.on{background:var(--gold);color:#1d1404}
+  #bottomNav button:focus-visible{outline:3px solid #fff;outline-offset:-3px}
 
-  /* ---------- Itinerary modal ---------- */
-  #itin{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(6,30,33,.55);backdrop-filter:blur(3px)}
-  #itin.open{display:flex}
+  /* ---------- Modals / sheets (itinerary + tools) ---------- */
+  .sheet{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(6,30,33,.55);backdrop-filter:blur(3px)}
+  .sheet.open{display:flex}
   .itin-box{background:var(--sand-50);width:100%;max-width:720px;max-height:92dvh;border-radius:22px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;overflow:hidden;animation:pop .25s ease}
   @keyframes pop{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
   .itin-head{background:linear-gradient(135deg,var(--teal-900),var(--teal-700));color:#fff;padding:16px 18px 0}
@@ -171,17 +185,97 @@
   .cl span{width:100%;height:100%;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--teal-800);font-family:'Heebo',sans-serif}
   .map-legend .clu{width:12px;height:12px;border-radius:50%;background:conic-gradient(#7c3aed 0 120deg,#e8603c 120deg 240deg,#0891b2 240deg)}
 
+  /* ---------- Distance origin bar ---------- */
+  .origin-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;background:#fff;border-bottom:1px solid var(--line);font-size:13px}
+  .origin-bar .ob-lbl{font-weight:700;color:var(--ink)}
+  .seg{display:inline-flex;background:var(--sand-100);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--teal-800);padding:7px 11px;border-radius:9px;cursor:pointer;min-height:36px}
+  .seg button.on{background:var(--teal-800);color:#fff}
+  .ob-status{font-size:12px;color:var(--muted)}
+
+  /* ---------- Card actions: favorite + WhatsApp ---------- */
+  .fav{border:1.5px solid var(--line);background:#fff;width:40px;height:40px;border-radius:12px;font-size:18px;display:grid;place-items:center;cursor:pointer;flex:0 0 auto;transition:transform .15s}
+  .fav:active{transform:scale(.9)}
+  .fav.on{border-color:#f3b4b4;background:#fff1f1}
+  .btn-wa{display:inline-flex;align-items:center;gap:6px;background:#128c4a;color:#fff;font-size:13px;font-weight:600;padding:8px 13px;border-radius:10px;text-decoration:none}
+  .btn-wa:hover{background:#0e7a40}
+  .btn-nav,.btn-ghost,.btn-wa{min-height:40px}
+
+  /* ---------- GPS ---------- */
+  .map-gps{position:absolute;top:60px;right:12px;z-index:450;background:#fff;border:0;border-radius:12px;padding:8px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--me);box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:6px;min-height:40px}
+  .map-gps.on{background:var(--me);color:#fff}
+  .map-gps.busy{opacity:.75}
+  .me-dot{width:20px;height:20px;border-radius:50%;background:var(--me);border:3px solid #fff;box-shadow:0 0 0 2px rgba(26,115,232,.35),0 2px 8px rgba(0,0,0,.35);position:relative}
+  .me-dot:after{content:"";position:absolute;inset:-9px;border-radius:50%;background:rgba(26,115,232,.28);animation:pulse 2s infinite;z-index:-1}
+
+  /* ---------- Itinerary checkboxes ---------- */
+  .tl-check{position:absolute;top:9px;left:10px;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--teal-800);cursor:pointer;padding:4px 6px;border-radius:8px;background:var(--teal-100)}
+  .tl-item.star .tl-check{background:rgba(255,255,255,.2);color:#fff}
+  .tl-check input,.ck input{width:20px;height:20px;accent-color:var(--teal-700);cursor:pointer}
+  .tl-item.done{opacity:.6}
+  .tl-item.done h4{text-decoration:line-through}
+  .tl-item h4,.tl-item .tl-time{padding-left:76px}
+  .day-tab .prog{display:block;font-size:11px;opacity:.85;margin-top:1px}
+
+  /* ---------- Tools drawer ---------- */
+  .tool{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px;scroll-margin-top:10px}
+  .tool h3{font-size:16.5px;font-weight:800;margin:0 0 10px;color:var(--ink)}
+  .cur-grid{display:grid;gap:8px}
+  .cur{display:flex;align-items:center;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--sand-50)}
+  .cur:focus-within{border-color:var(--teal-600)}
+  .cur span{flex:0 0 92px;padding:0 12px;font-weight:700;font-size:14px;color:var(--teal-800)}
+  .cur input{flex:1;min-width:0;border:0;background:#fff;font:inherit;font-size:22px;font-weight:700;padding:10px 12px;color:var(--ink);text-align:left;direction:ltr;outline:none;font-variant-numeric:tabular-nums}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{border:1.5px solid var(--teal-600);background:#fff;color:var(--teal-800);font:inherit;font-size:13.5px;font-weight:700;padding:8px 12px;border-radius:999px;cursor:pointer;min-height:40px;direction:ltr;font-variant-numeric:tabular-nums}
+  .chip.on{background:var(--teal-800);color:#fff;border-color:var(--teal-800)}
+  .rates{margin-top:10px;font-size:13px;color:var(--muted)}
+  .rates summary{cursor:pointer;font-weight:700;color:var(--teal-800);padding:4px 0}
+  .rates .rrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .rates input{width:90px;border:1.5px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;font-weight:700;direction:ltr;text-align:left}
+  .mini{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px;font-variant-numeric:tabular-nums}
+  .mini th{text-align:right;font-size:12px;color:var(--muted);font-weight:700;padding:6px 6px;border-bottom:2px solid var(--line)}
+  .mini td{padding:8px 6px;border-bottom:1px solid #ece5d6}
+  .mini td.num{direction:ltr;text-align:right;font-weight:700;white-space:nowrap}
+  .note{font-size:12.5px;color:var(--muted);margin:8px 0 0;line-height:1.5}
+  .phr{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+  .phr div{border:1.5px solid var(--line);border-radius:12px;padding:9px 11px;background:var(--sand-50)}
+  .phr b{display:block;font-size:15.5px;direction:ltr;text-align:right;color:var(--teal-800)}
+  .phr i{display:block;font-style:normal;font-size:13px;color:var(--ink);margin-top:1px}
+  .phr small{font-size:12.5px;color:var(--muted)}
+  .ck{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #ece5d6;font-size:14px;cursor:pointer}
+  .ck.done span{text-decoration:line-through;color:var(--muted)}
+  .ck .del{margin-inline-start:auto;border:0;background:transparent;color:#b42318;font-size:18px;cursor:pointer;padding:2px 8px}
+  .bar{height:8px;border-radius:99px;background:var(--sand-200);overflow:hidden;margin:2px 0 8px}
+  .bar i{display:block;height:100%;background:var(--teal-600);transition:width .3s}
+  .add-row{display:flex;gap:6px;margin-top:10px}
+  .add-row input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font:inherit}
+  .add-row button{border:0;background:var(--teal-700);color:#fff;font:inherit;font-weight:700;border-radius:10px;padding:0 14px;cursor:pointer}
+
+  /* ---------- Toast & offline ---------- */
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;z-index:1500;background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);transition:.25s;max-width:calc(100% - 32px);text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+  #offline{display:none;margin-top:8px;background:#fff3cd;color:#5c4200;border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:600}
+  body.is-offline #offline{display:block}
+
+  /* ---------- Legend collapse (mobile) ---------- */
+  .lg-h{display:none;font-weight:700;cursor:pointer}
+
   /* ---------- Responsive ---------- */
   @media (max-width: 860px){
+    #app{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
     #listPane,#mapPane{width:100%;position:absolute;inset:0;border:0}
-    #viewToggle{display:flex}
+    #bottomNav{display:flex}
     body.view-list #mapPane{visibility:hidden;pointer-events:none}
     body.view-map #listPane{display:none}
-    .map-legend{bottom:84px;right:10px}
-    .brand-sub{display:none}
-    header.top{padding:10px 12px 8px}
-    #list{padding:12px 12px 110px}
+    .map-legend{bottom:12px;right:10px}
+    .lg-h{display:block}
+    .map-legend.collapsed > div:not(.lg-h){display:none}
+    .brand-sub,.desk-only{display:none !important}
+    #list{padding:12px 12px 24px}
     .btn-top .lbl{display:none}
+    .sheet{padding:0;align-items:flex-end;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
+    .sheet .itin-box{max-width:none;height:100%;max-height:100%;border-radius:20px 20px 0 0}
+    #toast{bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px))}
   }
   @media (max-width: 380px){
     .stats{gap:4px}
@@ -201,10 +295,16 @@
           <div class="brand-sub">סביב Riu Palace Zanzibar · נונגווי וקנדווה · 19–22 בנובמבר</div>
         </div>
       </div>
-      <button id="openItin" class="btn-top btn-gold" title="מסלול 4 ימים">
-        <span>🗓️</span><span>מסלול 4 ימים</span>
-      </button>
+      <div class="flex items-center gap-2 desk-only">
+        <button id="openTools" class="btn-top" title="כלים: מטבע, מוניות, סוואהילית, צ׳קליסט">
+          <span>🧰</span><span>כלים</span>
+        </button>
+        <button id="openItin" class="btn-top btn-gold" title="מסלול 4 ימים">
+          <span>🗓️</span><span>מסלול 4 ימים</span>
+        </button>
+      </div>
     </div>
+    <div id="offline" role="status">📴 אין קליטה כרגע – המדריך, המסלול והכלים פועלים מהזיכרון</div>
 
     <div class="flex items-center gap-2 mt-3">
       <label class="search-wrap" aria-label="חיפוש">
@@ -230,10 +330,18 @@
             <strong class="text-[15.5px]">Riu Palace Zanzibar</strong>
             <span class="badge" style="background:#f6cd5c;color:#4a3304">⭐ נקודת הבית</span>
           </div>
-          <div class="text-[12.5px] text-[#6b5320] mt-0.5">Nungwi Road · חוף קנדווה–נונגווי · כל המרחקים מחושבים מכאן</div>
+          <div class="text-[12.5px] text-[#5a4415] mt-0.5">Nungwi Road · חוף קנדווה–נונגווי</div>
         </div>
         <a class="btn-nav" style="background:var(--gold-dark);padding:7px 10px" target="_blank" rel="noopener"
            href="https://www.google.com/maps/search/?api=1&query=-5.7366,39.2912" onclick="event.stopPropagation()">📍</a>
+      </div>
+      <div class="origin-bar" id="originBar">
+        <span class="ob-lbl">מרחקים:</span>
+        <div class="seg" role="radiogroup" aria-label="חישוב מרחקים">
+          <button data-origin="hotel" class="on" role="radio" aria-checked="true">🏨 מהמלון</button>
+          <button data-origin="me" role="radio" aria-checked="false">📍 מהמיקום שלי</button>
+        </div>
+        <span class="ob-status" id="originStatus"></span>
       </div>
       <div id="list"></div>
     </section>
@@ -241,6 +349,7 @@
     <section id="mapPane" aria-label="מפה">
       <div id="map"></div>
       <button class="map-recenter" id="recenter">🏨 חזרה למלון</button>
+      <button class="map-gps" id="gpsBtn" aria-label="הצג את המיקום שלי">📍 המיקום שלי</button>
       <div class="layer-switch" id="layerSwitch" role="radiogroup" aria-label="סוג מפה">
         <button data-layer="street" class="on" role="radio" aria-checked="true">🗺️ מפה</button>
         <button data-layer="satellite" role="radio" aria-checked="false">🛰️ לוויין</button>
@@ -250,14 +359,78 @@
   </main>
 </div>
 
-<!-- ===== Mobile view toggle ===== -->
-<div id="viewToggle" role="tablist">
-  <button data-view="map" role="tab">🗺️ מפה</button>
-  <button data-view="list" class="on" role="tab">📋 רשימה</button>
+<!-- ===== Mobile bottom thumb-bar ===== -->
+<nav id="bottomNav" aria-label="ניווט ראשי">
+  <button data-tab="map"><span class="ic">🗺️</span><span>מפה</span></button>
+  <button data-tab="list" class="on"><span class="ic">📋</span><span>מקומות</span></button>
+  <button data-tab="itin"><span class="ic">📅</span><span>מסלול</span></button>
+  <button data-tab="tools"><span class="ic">🧰</span><span>כלים</span></button>
+</nav>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ===== Tools drawer ===== -->
+<div id="tools" class="sheet" role="dialog" aria-modal="true" aria-labelledby="toolsTitle">
+  <div class="itin-box">
+    <div class="itin-head">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="toolsTitle" class="text-[19px] font-extrabold">🧰 כלים לטיול</h2>
+          <p class="text-[12.5px] text-[#d3eeee] mt-0.5">מחשבון שילינג, מחירי מוניות, סוואהילית וצ׳קליסט – עובד גם בלי קליטה</p>
+        </div>
+        <button class="close-x" data-close aria-label="סגירה">×</button>
+      </div>
+      <div class="day-tabs" id="toolTabs">
+        <button class="day-tab on" data-jump="t-cur"><b>💱 מטבע</b></button>
+        <button class="day-tab" data-jump="t-taxi"><b>🚕 מוניות</b></button>
+        <button class="day-tab" data-jump="t-sw"><b>🗣️ סוואהילית</b></button>
+        <button class="day-tab" data-jump="t-check"><b>✅ צ׳קליסט</b></button>
+      </div>
+    </div>
+    <div class="itin-body" id="toolsBody">
+      <section class="tool" id="t-cur">
+        <h3>💱 מחשבון שילינג טנזני</h3>
+        <div class="cur-grid">
+          <label class="cur"><span>TZS שילינג</span><input id="cTZS" inputmode="decimal" autocomplete="off" aria-label="סכום בשילינג"></label>
+          <label class="cur"><span>₪ שקל</span><input id="cILS" inputmode="decimal" autocomplete="off" aria-label="סכום בשקלים"></label>
+          <label class="cur"><span>$ דולר</span><input id="cUSD" inputmode="decimal" autocomplete="off" aria-label="סכום בדולרים"></label>
+        </div>
+        <div class="chips" id="curChips"></div>
+        <details class="rates">
+          <summary>שערי המרה (אפשר לעדכן)</summary>
+          <div class="rrow">1 $ = <input id="rUSD" inputmode="decimal" aria-label="שער דולר בשילינג"> TZS</div>
+          <div class="rrow">1 ₪ = <input id="rILS" inputmode="decimal" aria-label="שער שקל בשילינג"> TZS</div>
+          <div class="rrow"><button class="btn-ghost" id="rReset" type="button">איפוס לברירת מחדל</button></div>
+        </details>
+        <table class="mini" id="curTable"></table>
+      </section>
+
+      <section class="tool" id="t-taxi">
+        <h3>🚕 מחירי מונית הוגנים מריו פאלאס</h3>
+        <table class="mini" id="taxiTable"></table>
+        <p class="note">טווחים משוערים לכיוון אחד, לרכב (לא לאדם). השילינג מחושב לפי השער שבמחשבון. מסכמים מחיר <b>לפני</b> שנכנסים לרכב; תשלום בשילינג יוצא לרוב זול יותר מדולרים.</p>
+      </section>
+
+      <section class="tool" id="t-sw">
+        <h3>🗣️ שימושון סוואהילית</h3>
+        <div class="phr" id="phrases"></div>
+      </section>
+
+      <section class="tool" id="t-check">
+        <h3>✅ צ׳קליסט הגעה</h3>
+        <div class="bar"><i id="ckBar" style="width:0"></i></div>
+        <div id="ckList"></div>
+        <form class="add-row" id="ckForm">
+          <input id="ckInput" placeholder="להוסיף משימה…" aria-label="משימה חדשה">
+          <button type="submit">הוספה</button>
+        </form>
+      </section>
+    </div>
+  </div>
 </div>
 
 <!-- ===== Itinerary modal ===== -->
-<div id="itin" role="dialog" aria-modal="true" aria-labelledby="itinTitle">
+<div id="itin" class="sheet" role="dialog" aria-modal="true" aria-labelledby="itinTitle">
   <div class="itin-box">
     <div class="itin-head">
       <div class="flex items-start justify-between gap-3">
@@ -549,6 +722,23 @@ const fmtKm = km => km < 1 ? `${Math.round(km * 1000)} מ׳` : `${km.toFixed(km 
 const gmapsDir = (lat, lng) => `https://www.google.com/maps/dir/?api=1&origin=${HOTEL.lat},${HOTEL.lng}&destination=${lat},${lng}`;
 const isMobile = () => window.matchMedia('(max-width: 860px)').matches;
 
+/* Safe localStorage wrapper (private mode / blocked storage never breaks the app) */
+const store = {
+  get(k, def) { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const favs = new Set(store.get('znz-favs', []));
+const saveFavs = () => store.set('znz-favs', [...favs]);
+
+function toast(msg, ms = 2600) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+/* Live GPS position (null until the user allows location) */
+let myPos = null;
+
 const RUN_KM = routeLength(RUN_ROUTE);
 
 /* Pre-compute distance / walking / taxi times */
@@ -576,7 +766,35 @@ POIS.forEach(p => {
 /* =========================================================
    STATE
    ========================================================= */
-const state = { cat: 'all', q: '', sortByDist: false, selected: null };
+const state = { cat: 'all', q: '', sortByDist: false, selected: null, origin: 'hotel' };
+
+/* Distance / time metrics from the active origin (hotel or my live location) */
+function metrics(p) {
+  if (state.origin !== 'me' || !myPos) return { dist: p.dist, walk: p.walk, taxi: p.taxi, run: p.run, sort: p.sortDist, me: false };
+  if (p.isRoute) {
+    const near = Math.min(...RUN_ROUTE.map(([la, ln]) => haversine(myPos, { lat: la, lng: ln })));
+    return { dist: p.dist, walk: p.walk, run: p.run, taxi: null, sort: near, near, me: true };
+  }
+  const straight = haversine(myPos, p);
+  if (straight > 150) return { dist: straight, walk: null, taxi: null, sort: straight, me: true };
+  if (straight > 15) { const road = straight * 1.3; return { dist: road, walk: null, taxi: road / 45 * 60 + 5, sort: road, me: true }; }
+  const factor = p.walkVia === 'חוף' ? 1.15 : 1.35;
+  return { dist: straight, walk: straight * factor / 4.8 * 60, taxi: straight * 1.5 / 25 * 60 + 3, sort: straight, me: true };
+}
+const originLatLng = () => (state.origin === 'me' && myPos) ? myPos : HOTEL;
+const fromLabel = () => (state.origin === 'me' && myPos) ? 'ממני' : 'מהמלון';
+const navUrl = p => { const o = originLatLng(); return `https://www.google.com/maps/dir/?api=1&origin=${o.lat.toFixed(5)},${o.lng.toFixed(5)}&destination=${p.lat},${p.lng}`; };
+function waUrl(p) {
+  const m = metrics(p);
+  const times = p.isRoute
+    ? `📏 ${fmtKm(p.dist)} · 🏃 ${fmtMin(p.run)}`
+    : `📏 ${fmtKm(m.dist)} ${fromLabel()}${m.walk != null ? ' · 🚶 ' + fmtMin(m.walk) : ''}${m.taxi != null ? ' · 🚕 ' + fmtMin(m.taxi) : ''}`;
+  const text = [
+    `📍 ${p.he}`, p.en, times, `💡 ${p.tips[0][1]}`,
+    `🧭 ניווט: https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`
+  ].join('\n');
+  return 'https://wa.me/?text=' + encodeURIComponent(text);
+}
 
 /* =========================================================
    MAP
@@ -660,16 +878,17 @@ function pinIcon(p, selected) {
 }
 function popupHtml(p) {
   const c = CATS[p.cat];
+  const m = metrics(p);
   const timeRow = p.isRoute
     ? `<span>📏 <b>${fmtKm(p.dist)}</b></span><span>🏃 <b>${fmtMin(p.run)}</b></span><span>🚶 <b>${fmtMin(p.walk)}</b></span>`
-    : `<span>📏 <b>${fmtKm(p.dist)}</b></span><span>🚶 <b>${p.walk == null ? 'לא רלוונטי' : fmtMin(p.walk)}</b></span><span>🚕 <b>${fmtMin(p.taxi)}</b></span>`;
+    : `<span>📏 <b>${fmtKm(m.dist)}</b> ${fromLabel()}</span><span>🚶 <b>${m.walk == null ? 'לא רלוונטי' : fmtMin(m.walk)}</b></span><span>🚕 <b>${m.taxi == null ? '—' : fmtMin(m.taxi)}</b></span>`;
   return `
     <span class="badge" style="background:${c.bg};color:${c.color}">${c.icon} ${c.label}</span>
     <div class="pp-title">${p.he}</div>
     <div class="pp-row">${timeRow}</div>
     <p class="pp-desc">${p.desc.length > 150 ? p.desc.slice(0, 148) + '…' : p.desc}</p>
     <div class="pp-actions">
-      <a target="_blank" rel="noopener" href="${gmapsDir(p.lat, p.lng)}">🧭 נווט ב-Google Maps</a>
+      <a target="_blank" rel="noopener" href="${navUrl(p)}">🧭 נווט ב-Google Maps</a>
       <button onclick="showCard('${p.id}')">📋 לכרטיס המלא</button>
     </div>`;
 }
@@ -714,7 +933,11 @@ function openPoiPopup(id) {
 }
 
 /* Legend */
-document.getElementById('legend').innerHTML =
+const legendEl = document.getElementById('legend');
+legendEl.classList.add('collapsed');            // only matters on mobile (CSS), keeps the map clear
+legendEl.addEventListener('click', () => legendEl.classList.toggle('collapsed'));
+L.DomEvent.disableClickPropagation(legendEl);
+legendEl.innerHTML = `<div class="lg-h">ℹ️ מקרא</div>` +
   CAT_ORDER.map(k => `<div><i style="background:${CATS[k].color}"></i>${CATS[k].label}</div>`).join('') +
   `<div><i class="dash"></i>מסלול ריצה (${RUN_KM.toFixed(1)} ק״מ)</div>` +
   `<div><i class="clu"></i>עיגול עם מספר = כמה מקומות צמודים</div>`;
@@ -731,16 +954,17 @@ fitLocal();
 const listEl = document.getElementById('list');
 
 function renderPills() {
-  const counts = { all: POIS.length };
+  const counts = { all: POIS.length, fav: favs.size };
   CAT_ORDER.forEach(k => counts[k] = POIS.filter(p => p.cat === k).length);
-  const items = [['all', 'הכל', '✨'], ...CAT_ORDER.map(k => [k, CATS[k].label, CATS[k].icon])];
+  const items = [['all', 'הכל', '✨'], ['fav', 'מועדפים', '❤️'], ...CAT_ORDER.map(k => [k, CATS[k].label, CATS[k].icon])];
   document.getElementById('pills').innerHTML = items.map(([k, label, ic]) =>
     `<button class="pill ${state.cat === k ? 'active' : ''}" data-cat="${k}">${ic} ${label} <span class="cnt">${counts[k]}</span></button>`
   ).join('');
 }
 
 function matches(p) {
-  if (state.cat !== 'all' && p.cat !== state.cat) return false;
+  if (state.cat === 'fav') { if (!favs.has(p.id)) return false; }
+  else if (state.cat !== 'all' && p.cat !== state.cat) return false;
   if (!state.q) return true;
   const q = state.q.toLowerCase();
   const hay = [p.he, p.en, p.desc, CATS[p.cat].label, ...p.tips.map(t => t[1])].join(' ').toLowerCase();
@@ -749,31 +973,38 @@ function matches(p) {
 
 function cardHtml(p) {
   const c = CATS[p.cat];
+  const m = metrics(p);
   const stats = p.isRoute
-    ? `<div class="stat"><b>${fmtKm(p.dist)}</b><span>אורך הקטע</span></div>
+    ? `<div class="stat"><b>${fmtKm(p.dist)}</b><span>${m.me ? 'אורך · ' + fmtKm(m.near) + ' ממני' : 'אורך הקטע'}</span></div>
        <div class="stat"><b>${fmtMin(p.run)}</b><span>ריצה (6:00/ק״מ)</span></div>
        <div class="stat"><b>${fmtMin(p.walk)}</b><span>הליכה בחוף</span></div>`
-    : `<div class="stat"><b>${fmtKm(p.dist)}</b><span>${p.isTrip ? 'נסיעה מהמלון' : 'מרחק מהמלון'}</span></div>
-       <div class="stat"><b>${p.walk == null ? '—' : fmtMin(p.walk)}</b><span>${p.walk == null ? 'לא בהליכה' : 'הליכה ב' + p.walkVia}</span></div>
-       <div class="stat"><b>${fmtMin(p.taxi)}</b><span>${p.isTrip ? 'ברכב / מונית' : 'במונית'}</span></div>`;
+    : `<div class="stat"><b>${fmtKm(m.dist)}</b><span>${m.me ? 'מרחק ממני' : p.isTrip ? 'נסיעה מהמלון' : 'מרחק מהמלון'}</span></div>
+       <div class="stat"><b>${m.walk == null ? '—' : fmtMin(m.walk)}</b><span>${m.walk == null ? 'לא בהליכה' : 'הליכה ב' + p.walkVia}</span></div>
+       <div class="stat"><b>${m.taxi == null ? '—' : fmtMin(m.taxi)}</b><span>${p.isTrip ? 'ברכב / מונית' : 'במונית'}</span></div>`;
+  const isFav = favs.has(p.id);
   return `
   <article class="card ${state.selected === p.id ? 'selected' : ''}" id="card-${p.id}" data-id="${p.id}" tabindex="0">
     <div class="stripe" style="background:${c.color}"></div>
     <div class="flex items-start justify-between gap-2">
-      <div class="min-w-0">
+      <div class="min-w-0 flex-1">
         <h3>${p.he}</h3>
         <div class="en">${p.en}</div>
+        <span class="badge mt-1.5" style="background:${c.bg};color:${c.color}">${c.icon} ${c.label}</span>
       </div>
-      <span class="badge" style="background:${c.bg};color:${c.color}">${c.icon} ${c.label}</span>
+      <button class="fav ${isFav ? 'on' : ''}" data-fav="${p.id}" aria-pressed="${isFav}" aria-label="${isFav ? 'הסרה מהמועדפים' : 'הוספה למועדפים'}">${isFav ? '❤️' : '🤍'}</button>
     </div>
     ${p.highlight ? `<div class="hl ${p.highlight.cls}">${p.highlight.text}</div>` : ''}
     <div class="stats">${stats}</div>
     <p class="desc">${p.desc}</p>
     <ul class="tips">${p.tips.map(t => `<li><span class="ti">${t[0]}</span><span>${t[1]}</span></li>`).join('')}</ul>
     <div class="actions">
-      <a class="btn-nav" target="_blank" rel="noopener" href="${gmapsDir(p.lat, p.lng)}" onclick="event.stopPropagation()">
+      <a class="btn-nav" target="_blank" rel="noopener" href="${navUrl(p)}" onclick="event.stopPropagation()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21.7 11.3 12.7 2.3a1 1 0 0 0-1.4 0l-9 9a1 1 0 0 0 0 1.4l9 9a1 1 0 0 0 1.4 0l9-9a1 1 0 0 0 0-1.4ZM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5Z"/></svg>
         נווט ב-Google Maps
+      </a>
+      <a class="btn-wa" target="_blank" rel="noopener" href="${waUrl(p)}" onclick="event.stopPropagation()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.4Z"/></svg>
+        שלח בוואטסאפ
       </a>
       <button class="btn-ghost" data-fly="${p.id}">🗺️ הצג במפה</button>
     </div>
@@ -783,14 +1014,16 @@ function cardHtml(p) {
 function renderList() {
   let items = POIS.filter(matches);
   if (state.sortByDist) {
-    items = items.slice().sort((a, b) => a.sortDist - b.sortDist);
+    items = items.slice().sort((a, b) => metrics(a).sort - metrics(b).sort);
   } else {
     items = items.slice().sort((a, b) => CAT_ORDER.indexOf(a.cat) - CAT_ORDER.indexOf(b.cat));
   }
-  const meta = `<div class="result-meta"><span>${items.length} מקומות${state.cat !== 'all' ? ' · ' + CATS[state.cat].label : ''}</span><span>${state.sortByDist ? '↓ מהקרוב לרחוק' : 'לפי קטגוריה'}</span></div>`;
-  listEl.innerHTML = items.length
-    ? meta + items.map(cardHtml).join('')
-    : `<div class="empty">🔍<br>לא נמצאו מקומות התואמים לחיפוש.<br><button class="btn-ghost mt-3" id="clearSearch">ניקוי חיפוש</button></div>`;
+  const catLabel = state.cat === 'fav' ? '❤️ מועדפים' : state.cat !== 'all' ? CATS[state.cat].label : '';
+  const meta = `<div class="result-meta"><span>${items.length} מקומות${catLabel ? ' · ' + catLabel : ''}</span><span>${state.sortByDist ? '↓ מהקרוב לרחוק ' + fromLabel() : 'לפי קטגוריה'}</span></div>`;
+  const emptyMsg = state.cat === 'fav' && !state.q
+    ? `❤️<br>עדיין אין מועדפים.<br>הקישו על 🤍 בכרטיס כדי לשמור מקום – נשמר בטלפון גם בלי קליטה.<br><button class="btn-ghost mt-3" id="clearSearch">לכל המקומות</button>`
+    : `🔍<br>לא נמצאו מקומות התואמים לחיפוש.<br><button class="btn-ghost mt-3" id="clearSearch">ניקוי חיפוש</button>`;
+  listEl.innerHTML = items.length ? meta + items.map(cardHtml).join('') : `<div class="empty">${emptyMsg}</div>`;
 
   // Markers visibility sync
   const visible = new Set(items.map(p => p.id));
@@ -869,14 +1102,39 @@ window.showCard = function (id) {
 /* =========================================================
    MOBILE VIEW TOGGLE
    ========================================================= */
+let currentView = 'list';
+function markNav(tab) {
+  document.querySelectorAll('#bottomNav button').forEach(b => {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-current', on ? 'page' : 'false');
+  });
+}
 function setView(v) {
+  closeSheets(true);
+  currentView = v;
   document.body.classList.toggle('view-map', v === 'map');
   document.body.classList.toggle('view-list', v === 'list');
-  document.querySelectorAll('#viewToggle button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  markNav(v);
   if (v === 'map') setTimeout(() => map.invalidateSize(), 30);
 }
-document.getElementById('viewToggle').addEventListener('click', e => {
-  const b = e.target.closest('button'); if (b) setView(b.dataset.view);
+function openSheet(id) {
+  document.querySelectorAll('.sheet.open').forEach(s => { if (s.id !== id) s.classList.remove('open'); });
+  if (id === 'itin') renderItin();
+  if (id === 'tools') renderTools();
+  document.getElementById(id).classList.add('open');
+  markNav(id);
+}
+function closeSheets(silent) {
+  document.querySelectorAll('.sheet.open').forEach(s => s.classList.remove('open'));
+  if (!silent) markNav(currentView);
+}
+document.getElementById('bottomNav').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const t = b.dataset.tab;
+  if (t === 'map' || t === 'list') setView(t);
+  else if (document.getElementById(t).classList.contains('open')) closeSheets();
+  else openSheet(t);
 });
 window.addEventListener('resize', () => map.invalidateSize());
 
@@ -900,7 +1158,16 @@ document.getElementById('sortBtn').addEventListener('click', e => {
   renderList();
 });
 listEl.addEventListener('click', e => {
-  if (e.target.id === 'clearSearch') { state.q = ''; state.cat = 'all'; document.getElementById('search').value = ''; render(); return; }
+  if (e.target.id === 'clearSearch') { e.stopPropagation(); state.q = ''; state.cat = 'all'; document.getElementById('search').value = ''; render(); return; }
+  const favBtn = e.target.closest('[data-fav]');
+  if (favBtn) {
+    e.stopPropagation();
+    const id = favBtn.dataset.fav, p = POIS.find(x => x.id === id);
+    if (favs.has(id)) { favs.delete(id); toast('הוסר מהמועדפים'); }
+    else { favs.add(id); toast(`❤️ ${p.he} נשמר במועדפים`); }
+    saveFavs(); render();
+    return;
+  }
   const fly = e.target.closest('[data-fly]');
   const card = e.target.closest('.card');
   if (fly) { e.stopPropagation(); selectPoi(fly.dataset.fly); return; }
@@ -969,18 +1236,26 @@ const ITIN = [
     ]
   }
 ];
-let activeDay = 2; // open on the party day by default
+/* Open on today's trip day if we're in 19–22 Nov, otherwise on the party day */
+let activeDay = (() => {
+  const d = new Date();
+  return d.getMonth() === 10 && d.getDate() >= 19 && d.getDate() <= 22 ? d.getDate() - 19 : 2;
+})();
+const itinDone = new Set(store.get('znz-itin', []));
 function renderItin() {
-  document.getElementById('dayTabs').innerHTML = ITIN.map((d, i) =>
-    `<button class="day-tab ${i === activeDay ? 'on' : ''} ${d.party ? 'party' : ''}" data-day="${i}"><b>${d.party ? '🌕 ' : ''}${d.day} ${d.date}</b><small>${d.title.replace('🌕 ', '')}</small></button>`
-  ).join('');
+  document.getElementById('dayTabs').innerHTML = ITIN.map((d, i) => {
+    const done = d.items.filter((_, j) => itinDone.has(`${i}-${j}`)).length;
+    return `<button class="day-tab ${i === activeDay ? 'on' : ''} ${d.party ? 'party' : ''}" data-day="${i}"><b>${d.party ? '🌕 ' : ''}${d.day} ${d.date}</b><small>${d.title.replace('🌕 ', '')}</small><span class="prog">${done === d.items.length ? '✅ הושלם' : `✓ ${done}/${d.items.length}`}</span></button>`;
+  }).join('');
   const d = ITIN[activeDay];
   document.getElementById('dayBody').innerHTML = `
     <div class="day-intro"><strong>יום ${activeDay + 1} · ${d.day} ${d.date} · ${d.title}</strong><br>${d.intro}</div>
     <div class="tl">
-      ${d.items.map(it => {
+      ${d.items.map((it, j) => {
         const p = it.poi && POIS.find(x => x.id === it.poi);
-        return `<div class="tl-item ${it.star ? 'star' : ''}">
+        const key = `${activeDay}-${j}`, done = itinDone.has(key);
+        return `<div class="tl-item ${it.star ? 'star' : ''} ${done ? 'done' : ''}">
+          <label class="tl-check"><input type="checkbox" data-ck="${key}" ${done ? 'checked' : ''}><span>בוצע</span></label>
           <div class="tl-time">${it.t}</div>
           <h4>${it.h}</h4>
           <p>${it.p}</p>
@@ -990,26 +1265,242 @@ function renderItin() {
     </div>`;
 }
 const itinEl = document.getElementById('itin');
-document.getElementById('openItin').addEventListener('click', () => { renderItin(); itinEl.classList.add('open'); });
-document.getElementById('closeItin').addEventListener('click', () => itinEl.classList.remove('open'));
+document.getElementById('openItin').addEventListener('click', () => openSheet('itin'));
+document.getElementById('openTools').addEventListener('click', () => openSheet('tools'));
+document.getElementById('closeItin').addEventListener('click', () => closeSheets());
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeSheets()));
+document.querySelectorAll('.sheet').forEach(s => s.addEventListener('click', e => { if (e.target === s) closeSheets(); }));
 itinEl.addEventListener('click', e => {
-  if (e.target === itinEl) { itinEl.classList.remove('open'); return; }
   const tab = e.target.closest('[data-day]');
   if (tab) { activeDay = +tab.dataset.day; renderItin(); document.getElementById('dayBody').scrollTop = 0; return; }
   const go = e.target.closest('[data-goto]');
   if (go) {
-    itinEl.classList.remove('open');
+    closeSheets();
     if (!document.getElementById('card-' + go.dataset.goto)) { state.cat = 'all'; state.q = ''; document.getElementById('search').value = ''; render(); }
     selectPoi(go.dataset.goto);
     if (!isMobile()) highlightCard(go.dataset.goto, true);
   }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') itinEl.classList.remove('open'); });
+itinEl.addEventListener('change', e => {
+  const k = e.target.dataset.ck; if (!k) return;
+  e.target.checked ? itinDone.add(k) : itinDone.delete(k);
+  store.set('znz-itin', [...itinDone]);
+  const body = document.getElementById('dayBody'), y = body.scrollTop;
+  renderItin(); body.scrollTop = y;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+
+/* =========================================================
+   TOOLS: currency, taxi fares, Swahili, arrival checklist
+   ========================================================= */
+const RATE_DEF = { usd: 2650, ils: 720 };          // TZS per 1 USD / 1 ILS
+let rates = Object.assign({}, RATE_DEF, store.get('znz-rates', {}));
+const PRESETS = [10000, 20000, 40000, 50000, 100000];
+const cur = { tzs: store.get('znz-cur-tzs', 10000) };
+const $ = id => document.getElementById(id);
+const parseNum = s => { const n = parseFloat(String(s).replace(/,/g, '').replace(/[^\d.]/g, '')); return isFinite(n) ? n : 0; };
+const fmtNum = (n, dec) => n.toLocaleString('en-US', { maximumFractionDigits: dec ?? (n >= 1000 ? 0 : 2) });
+const roundK = n => Math.round(n / 1000) * 1000;
+
+function syncCur(except) {
+  const t = cur.tzs;
+  if (except !== 'TZS') $('cTZS').value = fmtNum(t, 0);
+  if (except !== 'ILS') $('cILS').value = fmtNum(t / rates.ils);
+  if (except !== 'USD') $('cUSD').value = fmtNum(t / rates.usd);
+  document.querySelectorAll('#curChips .chip').forEach(c => c.classList.toggle('on', +c.dataset.v === Math.round(t)));
+  store.set('znz-cur-tzs', t);
+}
+function renderCurTable() {
+  $('curTable').innerHTML = `<thead><tr><th>שילינג (TZS)</th><th>₪ שקל</th><th>$ דולר</th></tr></thead><tbody>` +
+    [5000, 10000, 20000, 50000, 100000, 200000].map(v =>
+      `<tr><td class="num">${fmtNum(v, 0)}</td><td class="num">₪${fmtNum(v / rates.ils, 1)}</td><td class="num">$${fmtNum(v / rates.usd, 1)}</td></tr>`
+    ).join('') + '</tbody>';
+}
+const TAXI = [
+  { to: 'קנדווה רוקס / חוף קנדווה', usd: [5, 8], time: '~4 דק׳' },
+  { to: 'מרכז נונגווי – כספומטים, מסעדות, ברים', usd: [5, 8], time: '~6 דק׳' },
+  { to: 'צבי הים – ברקה / מנאראני (קצה נונגווי)', usd: [5, 8], time: '~8 דק׳' },
+  { to: 'סטון טאון', usd: [45, 55], time: '~75 דק׳' },
+  { to: 'שדה התעופה ZNZ', usd: [45, 55], time: '~70 דק׳' }
+];
+function renderTaxi() {
+  $('taxiTable').innerHTML = `<thead><tr><th>יעד</th><th>דולר</th><th>שילינג</th></tr></thead><tbody>` +
+    TAXI.map(r => `<tr><td>${r.to}<br><small style="color:var(--muted)">🚕 ${r.time}</small></td>
+      <td class="num">$${r.usd[0]}–${r.usd[1]}</td>
+      <td class="num">${fmtNum(roundK(r.usd[0] * rates.usd), 0)}–${fmtNum(roundK(r.usd[1] * rates.usd), 0)}</td></tr>`).join('') + '</tbody>';
+}
+const PHRASES = [
+  ['Jambo / Mambo', 'ג׳אמבו / מאמבו', 'שלום / מה קורה? (עונים: Poa)'],
+  ['Poa', 'פּוֹאָה', 'סבבה / מעולה'],
+  ['Asante sana', 'אָסַנְטֶה סָנָה', 'תודה רבה'],
+  ['Karibu', 'קָרִיבּוּ', 'ברוכים הבאים / בבקשה'],
+  ['Pole pole', 'פּוֹלֶה פּוֹלֶה', 'לאט לאט / בנחת'],
+  ['Hakuna matata', 'הָקוּנָה מָטָטָה', 'אין בעיה'],
+  ['Bei gani?', 'בֵּיי גָאנִי?', 'כמה זה עולה?'],
+  ['Punguza bei', 'פּוּנְגוּזָה בֵּיי', 'תוריד במחיר'],
+  ['Hapana, asante', 'הָפָּנָה, אָסַנְטֶה', 'לא, תודה'],
+  ['Ndiyo / Sawa', 'נְדִיוֹ / סָאוָה', 'כן / בסדר'],
+  ['Maji', 'מָאגִ׳י', 'מים'],
+  ['Bili, tafadhali', 'בִּילִי, טָפָדָלִי', 'חשבון, בבקשה'],
+  ['Rafiki', 'רָפִיקִי', 'חבר'],
+  ['Lala salama', 'לָאלָה סָלָאמָה', 'לילה טוב']
+];
+const CK_DEF = [
+  { id: 'c1', t: 'לשריין בצ׳ק-אין שולחן במסעדות האלה-קארט של המלון (Beef Steak House ועוד)' },
+  { id: 'c2', t: 'למשוך מזומן TZS (כספומטים במרכז נונגווי)' },
+  { id: 'c3', t: 'דולרים בשטרות קטנים (מ-2009 ואילך) לטיפים ודמי כניסה' },
+  { id: 'c4', t: 'להזמין שייט למנמבה ל-20.11 (יציאה ~08:15)' },
+  { id: 'c5', t: 'לבדוק טבלת גאות לריצות הבוקר' },
+  { id: 'c6', t: 'לבדוק כניסה למסיבת הירח המלא (שבת 21.11)' },
+  { id: 'c7', t: 'לתאם נהג ל-22.11: סטון טאון ← שדה ZNZ' },
+  { id: 'c8', t: 'eSIM / כרטיס SIM מקומי לגלישה' },
+  { id: 'c9', t: 'קרם הגנה ידידותי לשונית + ספריי נגד יתושים' },
+  { id: 'c10', t: 'להוסיף את המדריך למסך הבית (עובד גם בלי קליטה)' }
+];
+let ck = Object.assign({ done: [], custom: [] }, store.get('znz-check', {}));
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function renderChecklist() {
+  const all = CK_DEF.concat(ck.custom);
+  const done = all.filter(i => ck.done.includes(i.id)).length;
+  $('ckBar').style.width = (all.length ? done / all.length * 100 : 0) + '%';
+  $('ckList').innerHTML = `<p class="note" style="margin:0 0 4px">${done} מתוך ${all.length} בוצעו</p>` + all.map(i => {
+    const on = ck.done.includes(i.id), custom = i.id.startsWith('u');
+    return `<label class="ck ${on ? 'done' : ''}"><input type="checkbox" data-ckid="${i.id}" ${on ? 'checked' : ''}><span>${esc(i.t)}</span>${custom ? `<button type="button" class="del" data-del="${i.id}" aria-label="מחיקה">×</button>` : ''}</label>`;
+  }).join('');
+}
+function renderTools() {
+  renderCurTable(); renderTaxi(); renderChecklist(); syncCur();
+  $('rUSD').value = rates.usd; $('rILS').value = rates.ils;
+}
+/* one-time wiring */
+$('curChips').innerHTML = PRESETS.map(v => `<button type="button" class="chip" data-v="${v}">${fmtNum(v, 0)} TZS</button>`).join('');
+$('phrases').innerHTML = PHRASES.map(([sw, pr, he]) => `<div><b>${sw}</b><i>${pr}</i><small>${he}</small></div>`).join('');
+[['cTZS', 'TZS'], ['cILS', 'ILS'], ['cUSD', 'USD']].forEach(([id, k]) => {
+  $(id).addEventListener('input', e => {
+    const v = parseNum(e.target.value);
+    cur.tzs = k === 'TZS' ? v : k === 'ILS' ? v * rates.ils : v * rates.usd;
+    syncCur(k);
+  });
+  $(id).addEventListener('focus', e => e.target.select());
+  $(id).addEventListener('blur', () => syncCur());
+});
+$('curChips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) { cur.tzs = +c.dataset.v; syncCur(); } });
+[['rUSD', 'usd'], ['rILS', 'ils']].forEach(([id, k]) => $(id).addEventListener('input', e => {
+  const v = parseNum(e.target.value); if (v <= 0) return;
+  rates[k] = v; store.set('znz-rates', rates);
+  syncCur(); renderCurTable(); renderTaxi();
+}));
+$('rReset').addEventListener('click', () => { rates = Object.assign({}, RATE_DEF); store.set('znz-rates', rates); renderTools(); toast('השערים אופסו'); });
+$('ckList').addEventListener('click', e => {
+  const d = e.target.closest('[data-del]'); if (!d) return;
+  e.preventDefault();
+  ck.custom = ck.custom.filter(i => i.id !== d.dataset.del);
+  ck.done = ck.done.filter(id => id !== d.dataset.del);
+  store.set('znz-check', ck); renderChecklist();
+});
+$('ckList').addEventListener('change', e => {
+  const id = e.target.dataset.ckid; if (!id) return;
+  ck.done = e.target.checked ? [...new Set(ck.done.concat(id))] : ck.done.filter(x => x !== id);
+  store.set('znz-check', ck); renderChecklist();
+});
+$('ckForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const t = $('ckInput').value.trim(); if (!t) return;
+  ck.custom.push({ id: 'u' + Date.now(), t }); store.set('znz-check', ck);
+  $('ckInput').value = ''; renderChecklist();
+});
+$('toolTabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-jump]'); if (!b) return;
+  document.querySelectorAll('#toolTabs .day-tab').forEach(x => x.classList.toggle('on', x === b));
+  const sec = $(b.dataset.jump), body = $('toolsBody');
+  body.scrollTo({ top: sec.offsetTop - body.offsetTop - 10, behavior: 'smooth' });
+});
+
+/* =========================================================
+   GPS: live blue dot + "distances from me"
+   ========================================================= */
+const gpsBtn = $('gpsBtn');
+let watchId = null, meMarker = null, meAcc = null, centerNext = false, lastRenderPos = null;
+const meIcon = L.divIcon({ className: '', html: '<div class="me-dot"></div>', iconSize: [20, 20], iconAnchor: [10, 10] });
+function flyToMe() {
+  if (isMobile() && currentView !== 'map') setView('map');
+  setTimeout(() => map.flyTo([myPos.lat, myPos.lng], Math.max(map.getZoom(), 16), { duration: 1 }), 60);
+}
+function startGps(center) {
+  if (!('geolocation' in navigator)) { toast('הדפדפן לא תומך באיתור מיקום'); return; }
+  if (center) centerNext = true;
+  if (watchId !== null) { if (myPos && centerNext) { centerNext = false; flyToMe(); } return; }
+  gpsBtn.classList.add('busy'); gpsBtn.textContent = '⏳ מאתר…';
+  watchId = navigator.geolocation.watchPosition(onPos, onPosErr, { enableHighAccuracy: true, maximumAge: 15000, timeout: 30000 });
+}
+function onPos(pos) {
+  const first = !myPos;
+  myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+  const ll = [myPos.lat, myPos.lng];
+  const popup = `<div class="pp-title">📍 המיקום הנוכחי שלך</div><div class="pp-row">דיוק ~${Math.round(myPos.acc)} מ׳ · ${fmtKm(haversine(HOTEL, myPos))} מהמלון</div>`;
+  if (!meMarker) {
+    meAcc = L.circle(ll, { radius: myPos.acc, color: '#1a73e8', weight: 1, fillOpacity: .12, interactive: false }).addTo(map);
+    meMarker = L.marker(ll, { icon: meIcon, zIndexOffset: 3000, keyboard: false }).addTo(map).bindPopup(popup);
+  } else {
+    meMarker.setLatLng(ll).setPopupContent(popup);
+    meAcc.setLatLng(ll).setRadius(myPos.acc);
+  }
+  gpsBtn.classList.remove('busy'); gpsBtn.classList.add('on'); gpsBtn.textContent = '📍 המיקום שלי';
+  if (centerNext) { centerNext = false; flyToMe(); }
+  if (first && state.origin !== 'me') toast(`המיקום שלך נמצא · ${fmtKm(haversine(HOTEL, myPos))} מהמלון`);
+  if (state.origin === 'me' && (first || !lastRenderPos || haversine(lastRenderPos, myPos) > 0.04)) {
+    lastRenderPos = { ...myPos }; refreshDistances();
+  }
+  updateOriginStatus();
+}
+function onPosErr(err) {
+  if (err.code === 3 && myPos) return;            // watch timeout after a good fix: keep last position
+  navigator.geolocation.clearWatch(watchId); watchId = null;
+  gpsBtn.classList.remove('busy', 'on'); gpsBtn.textContent = '📍 המיקום שלי';
+  toast(err.code === 1 ? 'אין הרשאת מיקום. אפשרו גישה למיקום בהגדרות הדפדפן ונסו שוב.' : 'לא הצלחנו לקבל מיקום. נסו שוב בשטח פתוח.', 4200);
+  if (state.origin === 'me' && !myPos) setOrigin('hotel');
+  updateOriginStatus();
+}
+function refreshDistances() {
+  renderList();
+  POIS.forEach(p => markers[p.id].setPopupContent(popupHtml(p)));
+}
+function updateOriginStatus() {
+  const s = $('originStatus');
+  if (state.origin !== 'me') s.textContent = '';
+  else if (!myPos) s.textContent = '⏳ ממתין למיקום…';
+  else s.textContent = `דיוק ~${Math.round(myPos.acc)} מ׳`;
+}
+function setOrigin(o) {
+  state.origin = o;
+  store.set('znz-origin', o);
+  document.querySelectorAll('#originBar [data-origin]').forEach(b => {
+    const on = b.dataset.origin === o; b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+  });
+  if (o === 'me' && !myPos) startGps(false);
+  lastRenderPos = myPos ? { ...myPos } : null;
+  refreshDistances(); updateOriginStatus();
+}
+gpsBtn.addEventListener('click', () => startGps(true));
+L.DomEvent.disableClickPropagation(gpsBtn);
+$('originBar').addEventListener('click', e => { const b = e.target.closest('[data-origin]'); if (b) setOrigin(b.dataset.origin); });
+
+/* =========================================================
+   OFFLINE: connection banner + service worker (sw.js)
+   ========================================================= */
+function netState() { document.body.classList.toggle('is-offline', !navigator.onLine); }
+window.addEventListener('offline', netState);
+window.addEventListener('online', () => { netState(); toast('✅ הקליטה חזרה'); });
+netState();
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 
 /* =========================================================
    INIT
    ========================================================= */
 render();
+if (store.get('znz-origin', 'hotel') === 'me') setOrigin('me');
 setTimeout(() => map.invalidateSize(), 200);
 </script>
 </body>
