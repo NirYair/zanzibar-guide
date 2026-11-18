@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 
 <style>
   :root{
@@ -155,6 +156,21 @@
   .close-x{border:0;background:rgba(255,255,255,.15);color:#fff;width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;display:grid;place-items:center}
   .close-x:hover{background:rgba(255,255,255,.28)}
 
+  /* ---------- Base-layer switcher (מפה / לוויין) ---------- */
+  .layer-switch{position:absolute;top:12px;left:56px;z-index:450;display:flex;background:#fff;border-radius:12px;padding:4px;box-shadow:var(--shadow);gap:2px}
+  .layer-switch button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--teal-800);padding:6px 12px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.18s}
+  .layer-switch button:hover{background:var(--sand-100)}
+  .layer-switch button.on{background:var(--teal-800);color:#fff}
+  .layer-switch button:focus-visible,.map-recenter:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* ---------- Marker clusters ---------- */
+  .leaflet-cluster-anim .leaflet-marker-icon,.leaflet-cluster-anim .leaflet-marker-shadow{transition:transform .3s ease-out,opacity .3s ease-in}
+  .leaflet-cluster-spider-leg{transition:stroke-dashoffset .3s ease-out,stroke-opacity .3s ease-in}
+  .cl{width:46px;height:46px;border-radius:50%;padding:4px;box-shadow:0 3px 12px rgba(0,0,0,.3),0 0 0 3px rgba(255,255,255,.9);transition:transform .15s}
+  .cl:hover{transform:scale(1.08)}
+  .cl span{width:100%;height:100%;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--teal-800);font-family:'Heebo',sans-serif}
+  .map-legend .clu{width:12px;height:12px;border-radius:50%;background:conic-gradient(#7c3aed 0 120deg,#e8603c 120deg 240deg,#0891b2 240deg)}
+
   /* ---------- Responsive ---------- */
   @media (max-width: 860px){
     #listPane,#mapPane{width:100%;position:absolute;inset:0;border:0}
@@ -225,6 +241,10 @@
     <section id="mapPane" aria-label="מפה">
       <div id="map"></div>
       <button class="map-recenter" id="recenter">🏨 חזרה למלון</button>
+      <div class="layer-switch" id="layerSwitch" role="radiogroup" aria-label="סוג מפה">
+        <button data-layer="street" class="on" role="radio" aria-checked="true">🗺️ מפה</button>
+        <button data-layer="satellite" role="radio" aria-checked="false">🛰️ לוויין</button>
+      </div>
       <div class="map-legend" id="legend"></div>
     </section>
   </main>
@@ -563,10 +583,50 @@ const state = { cat: 'all', q: '', sortByDist: false, selected: null };
    ========================================================= */
 const map = L.map('map', { zoomControl: false, attributionControl: true }).setView([HOTEL.lat, HOTEL.lng], 14);
 L.control.zoom({ position: 'topleft' }).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-  maxZoom: 19, subdomains: 'abcd',
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-}).addTo(map);
+/* Keyless base layers: OpenStreetMap (default) + Esri World Imagery (satellite) */
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const baseLayers = {
+  street: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }),
+  satellite: L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, maxNativeZoom: 18,
+    attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics'
+  })
+};
+/* Safety net: if OSM refuses tiles (e.g. opened from a local file without a referrer),
+   swap the street layer for Esri's keyless World Street Map */
+let osmOk = 0, osmFail = 0, usingFallback = false;
+baseLayers.street.on('tileload', () => osmOk++);
+baseLayers.street.on('tileerror', () => {
+  if (usingFallback || ++osmFail < 4 || osmOk > 0) return;
+  usingFallback = true;
+  const wasOn = map.hasLayer(baseLayers.street);
+  if (wasOn) map.removeLayer(baseLayers.street);
+  baseLayers.street = L.tileLayer(ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, maxNativeZoom: 18, attribution: 'Map &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors'
+  });
+  if (wasOn) baseLayers.street.addTo(map);
+});
+let activeBase = 'street';
+baseLayers.street.addTo(map);
+function setBase(name) {
+  if (name === activeBase) return;
+  map.removeLayer(baseLayers[activeBase]);
+  baseLayers[name].addTo(map);
+  activeBase = name;
+  document.querySelectorAll('#layerSwitch button').forEach(b => {
+    const on = b.dataset.layer === name;
+    b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+  });
+  try { localStorage.setItem('znz-base', name); } catch (e) {}
+}
+document.getElementById('layerSwitch').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (b) setBase(b.dataset.layer);
+});
+L.DomEvent.disableClickPropagation(document.getElementById('layerSwitch'));
+try { if (localStorage.getItem('znz-base') === 'satellite') setBase('satellite'); } catch (e) {}
 
 /* Running route */
 const routeGroup = L.layerGroup().addTo(map);
@@ -613,18 +673,51 @@ function popupHtml(p) {
       <button onclick="showCard('${p.id}')">📋 לכרטיס המלא</button>
     </div>`;
 }
+/* Cluster group: close Nungwi venues merge into one tappable badge whose ring
+   shows the mix of categories; at max zoom they fan out (spiderfy) */
+const cluster = L.markerClusterGroup({
+  maxClusterRadius: 42,
+  disableClusteringAtZoom: 18,
+  spiderfyOnMaxZoom: true,
+  spiderfyDistanceMultiplier: 1.7,
+  showCoverageOnHover: false,
+  zoomToBoundsOnClick: true,
+  spiderLegPolylineOptions: { weight: 2, color: '#0b4f55', opacity: .6 },
+  iconCreateFunction: c => {
+    const ms = c.getAllChildMarkers();
+    const counts = {};
+    ms.forEach(m => counts[m.options.poiCat] = (counts[m.options.poiCat] || 0) + 1);
+    let deg = 0;
+    const stops = CAT_ORDER.filter(k => counts[k]).map(k => {
+      const from = deg; deg += counts[k] / ms.length * 360;
+      return `${CATS[k].color} ${from}deg ${deg}deg`;
+    }).join(',');
+    return L.divIcon({
+      className: '',
+      html: `<div class="cl" style="background:conic-gradient(${stops})" title="${ms.length} מקומות – הקישו להגדלה"><span>${ms.length}</span></div>`,
+      iconSize: [46, 46], iconAnchor: [23, 23]
+    });
+  }
+}).addTo(map);
+
 POIS.forEach(p => {
-  const m = L.marker([p.lat, p.lng], { icon: pinIcon(p, false), riseOnHover: true })
-    .bindPopup(popupHtml(p), { maxWidth: 290, autoPanPadding: [30, 80] })
-    .addTo(map);
+  const m = L.marker([p.lat, p.lng], { icon: pinIcon(p, false), riseOnHover: true, poiCat: p.cat })
+    .bindPopup(popupHtml(p), { maxWidth: 290, autoPanPadding: [30, 80] });
   m.on('click', () => selectPoi(p.id, { fromMap: true }));
   markers[p.id] = m;
 });
+/* Open a POI popup even if its marker is currently hidden inside a cluster */
+function openPoiPopup(id) {
+  const m = markers[id];
+  if (!cluster.hasLayer(m)) return;
+  cluster.zoomToShowLayer(m, () => m.openPopup());
+}
 
 /* Legend */
 document.getElementById('legend').innerHTML =
   CAT_ORDER.map(k => `<div><i style="background:${CATS[k].color}"></i>${CATS[k].label}</div>`).join('') +
-  `<div><i class="dash"></i>מסלול ריצה (${RUN_KM.toFixed(1)} ק״מ)</div>`;
+  `<div><i class="dash"></i>מסלול ריצה (${RUN_KM.toFixed(1)} ק״מ)</div>` +
+  `<div><i class="clu"></i>עיגול עם מספר = כמה מקומות צמודים</div>`;
 
 function fitLocal() {
   const local = POIS.filter(p => !p.isTrip).map(p => [p.lat, p.lng]).concat(RUN_ROUTE, [[HOTEL.lat, HOTEL.lng]]);
@@ -703,8 +796,8 @@ function renderList() {
   const visible = new Set(items.map(p => p.id));
   POIS.forEach(p => {
     const m = markers[p.id];
-    if (visible.has(p.id)) { if (!map.hasLayer(m)) m.addTo(map); }
-    else if (map.hasLayer(m)) map.removeLayer(m);
+    if (visible.has(p.id)) { if (!cluster.hasLayer(m)) cluster.addLayer(m); }
+    else if (cluster.hasLayer(m)) cluster.removeLayer(m);
   });
   const showRoute = visible.has('run-route') || (state.cat === 'all' && !state.q);
   if (showRoute && !map.hasLayer(routeGroup)) routeGroup.addTo(map);
@@ -736,12 +829,16 @@ function highlightCard(id, scroll) {
 function flyToPoi(p) {
   if (p.isRoute) {
     map.flyToBounds(routeLine.getBounds(), { padding: [40, 40], duration: 1.1 });
-    setTimeout(() => markers[p.id].openPopup(), 1150);
+    setTimeout(() => openPoiPopup(p.id), 1150);
     return;
   }
-  const zoom = p.isTrip ? 12 : 16;
-  map.flyTo([p.lat, p.lng], zoom, { duration: p.isTrip ? 1.8 : 1.1 });
-  map.once('moveend', () => markers[p.id].openPopup());
+  // Zoom 18 = clustering is switched off, so the pin is always individually visible
+  const zoom = p.isTrip ? 12 : 18;
+  map.flyTo([p.lat, p.lng], zoom, { duration: p.isTrip ? 1.8 : 1.2 });
+  map.once('moveend', () => setTimeout(() => {
+    const m = markers[p.id];
+    if (m._map) m.openPopup(); else openPoiPopup(p.id);
+  }, 80));
 }
 
 function selectPoi(id, { fromMap = false } = {}) {
@@ -753,7 +850,7 @@ function selectPoi(id, { fromMap = false } = {}) {
     // Ensure the card exists (it may be filtered out)
     if (!document.getElementById('card-' + id)) { state.cat = 'all'; state.q = ''; document.getElementById('search').value = ''; render(); }
     highlightCard(id, !isMobile());
-    if (p.isRoute) markers[id].openPopup();
+    if (p.isRoute) openPoiPopup(id);
   } else {
     highlightCard(id, false);
     if (isMobile()) setView('map');
